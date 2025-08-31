@@ -2,6 +2,7 @@ package com.ecommerce.orderevent.controller;
 
 import com.ecommerce.orderevent.entity.User;
 import com.ecommerce.orderevent.service.UserService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,9 +19,18 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<User> registerUser(@RequestBody User user){
-        User saveUser = userService.saveUser(user);
-        return ResponseEntity.ok(saveUser);
+    public ResponseEntity<Map<String, Object>> registerUser(@RequestBody User user){
+        Map<String, Object> response = new HashMap<>();
+        try {
+            userService.saveUser(user);
+            response.put("status", "success");
+            response.put("message", "User saved successfully!");
+            return ResponseEntity.status(HttpStatus.CREATED).body(response); // 201
+        } catch (IllegalArgumentException ex) {
+            response.put("status", "error");
+            response.put("message", ex.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(response); // 409
+        }
     }
 
     @PostMapping("/login")

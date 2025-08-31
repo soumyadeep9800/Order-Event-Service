@@ -3,6 +3,8 @@ package com.ecommerce.orderevent.service;
 
 import com.ecommerce.orderevent.entity.User;
 import com.ecommerce.orderevent.repository.UserRepository;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import java.util.*;
 
@@ -15,8 +17,11 @@ public class UserService {
         this.userRepository=userRepository;
     }
 
-    public User saveUser(User user){
-        return userRepository.save(user);
+    public void saveUser(User user){
+        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+            throw new IllegalArgumentException("User already exists with this email!");
+        }
+        userRepository.save(user);
     }
 
     public List<User> getAll(){
