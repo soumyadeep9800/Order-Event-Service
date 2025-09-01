@@ -1,11 +1,13 @@
 package com.ecommerce.orderevent.entity;
 
 import jakarta.persistence.*;
-import java.awt.*;
+import lombok.Data;
+
 import java.util.List;
 
 @Entity
 @Table(name = "restaurants")
+@Data
 public class Restaurant {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
