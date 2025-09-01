@@ -3,6 +3,7 @@ package com.ecommerce.orderevent.controller;
 import com.ecommerce.orderevent.entity.MenuItem;
 import com.ecommerce.orderevent.service.MenuItemService;
 import com.ecommerce.orderevent.service.RestaurantService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
@@ -25,7 +26,9 @@ public class MenuItemController {
     }
 
     @GetMapping("/{id}")
-    public Optional<MenuItem> getMenuItem(@PathVariable Long id){
-        return menuItemService.findMenuItem(id);
+    public ResponseEntity<MenuItem> getMenuItem(@PathVariable Long id) {
+        return menuItemService.findMenuItem(id)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 }
