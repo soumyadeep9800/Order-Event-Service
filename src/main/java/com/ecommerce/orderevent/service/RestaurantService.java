@@ -26,4 +26,8 @@ public class RestaurantService {
         return restaurantRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Restaurant not found"));
     }
+
+    public void deleteRestaurant(Long id){
+        restaurantRepository.deleteById(id);
+    }
 }

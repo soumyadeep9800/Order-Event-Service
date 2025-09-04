@@ -31,4 +31,9 @@ public class MenuItemController {
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
+
+    @DeleteMapping("/{id}")
+    public void deleteMenuItem(@PathVariable Long id){
+        menuItemService.deleteMenuItem(id);
+    }
 }

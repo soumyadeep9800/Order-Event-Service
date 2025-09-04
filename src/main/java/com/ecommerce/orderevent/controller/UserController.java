@@ -51,7 +51,7 @@ public class UserController {
 
     @GetMapping
     public ResponseEntity<List<User>> getAllUsers() {
-        return ResponseEntity.ok(userService.getAll());
+        return ResponseEntity.ok(userService.getAllUser());
     }
 
     @GetMapping("/{email}")

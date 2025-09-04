@@ -29,6 +29,16 @@ public class RestaurantController {
         return restaurantService.getAllRestaurant();
     }
 
+    @DeleteMapping("/{id}")
+    public String deleteRestaurant(@PathVariable Long id){
+        try{
+            restaurantService.deleteRestaurant(id);
+            return "Restaurant Delete Successfully!";
+        } catch (Exception e) {
+            return " Restaurant can not deleted "+ e;
+        }
+    }
+
     @GetMapping("/{id}/menu")
     public List<MenuItem> menuOfRestaurant(@PathVariable Long id){
         return menuItemService.getMenuItemsByRestaurant(id);

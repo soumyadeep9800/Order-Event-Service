@@ -35,4 +35,8 @@ public class MenuItemService {
     public Optional<MenuItem> findMenuItem(Long menuId){
         return menuItemRepository.findById(menuId);
     }
+
+    public void deleteMenuItem(Long id){
+        menuItemRepository.deleteById(id);
+    }
 }
