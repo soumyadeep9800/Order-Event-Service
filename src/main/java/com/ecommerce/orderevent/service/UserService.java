@@ -1,10 +1,7 @@
 package com.ecommerce.orderevent.service;
 
-
 import com.ecommerce.orderevent.entity.User;
 import com.ecommerce.orderevent.repository.UserRepository;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import java.util.*;
 

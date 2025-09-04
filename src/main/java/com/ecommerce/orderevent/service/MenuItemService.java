@@ -2,6 +2,7 @@ package com.ecommerce.orderevent.service;
 
 import com.ecommerce.orderevent.entity.MenuItem;
 import com.ecommerce.orderevent.entity.Restaurant;
+import com.ecommerce.orderevent.exception.ResourceNotFoundException;
 import com.ecommerce.orderevent.repository.MenuItemRepository;
 import com.ecommerce.orderevent.repository.RestaurantRepository;
 import org.springframework.stereotype.Service;
@@ -19,7 +20,7 @@ public class MenuItemService {
 
     public MenuItem addMenuItem(Long restaurantId, MenuItem menuItem){
         Restaurant restaurant = restaurantRepository.findById(restaurantId)
-                .orElseThrow(() -> new RuntimeException("Restaurant Not Found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Restaurant not found with id: " + restaurantId));
 
         menuItem.setRestaurant(restaurant);
         return menuItemRepository.save(menuItem);
@@ -27,7 +28,7 @@ public class MenuItemService {
 
     public List<MenuItem> getMenuItemsByRestaurant(Long restaurantId) {
         Restaurant restaurant = restaurantRepository.findById(restaurantId)
-                .orElseThrow(() -> new RuntimeException("Restaurant not found"));
+                .orElseThrow(() ->  new ResourceNotFoundException("Restaurant not found with id: " + restaurantId));
         return restaurant.getMenuItems();
     }
 
