@@ -2,7 +2,6 @@ package com.ecommerce.orderevent.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
-
 import java.time.LocalDateTime;
 import java.util.*;
 @Entity
