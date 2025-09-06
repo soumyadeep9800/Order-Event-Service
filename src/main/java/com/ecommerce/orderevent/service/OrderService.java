@@ -4,14 +4,14 @@ import com.ecommerce.orderevent.entity.MenuItem;
 import com.ecommerce.orderevent.entity.Order;
 import com.ecommerce.orderevent.entity.Restaurant;
 import com.ecommerce.orderevent.entity.User;
+import com.ecommerce.orderevent.exception.ResourceNotFoundException;
 import com.ecommerce.orderevent.repository.MenuItemRepository;
 import com.ecommerce.orderevent.repository.OrderRepository;
 import com.ecommerce.orderevent.repository.RestaurantRepository;
 import com.ecommerce.orderevent.repository.UserRepository;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class OrderService {
@@ -33,12 +33,12 @@ public class OrderService {
 
     public Order placeOrder(Long userId, Long restaurantId, List<Long> menuItemIds){
         User user = userRepository.findById(userId)
-                .orElseThrow(()-> new RuntimeException("User Not Found!"));
+                .orElseThrow(()-> new ResourceNotFoundException("User Not Found!"));
         Restaurant restaurant = restaurantRepository.findById(restaurantId)
-                .orElseThrow(()-> new RuntimeException("Restaurant Not Found!"));
+                .orElseThrow(()-> new ResourceNotFoundException("Restaurant Not Found!"));
 
         List<MenuItem> items = menuItemRepository.findAllById(menuItemIds);
-        if(items.isEmpty()) throw new RuntimeException("No valid menu items found!");
+        if(items.isEmpty()) throw new ResourceNotFoundException("No valid menu items found for given IDs: " + menuItemIds);
         //calculate total price
         double totalPrice = items.stream().mapToDouble(MenuItem::getPrice).sum();
 
