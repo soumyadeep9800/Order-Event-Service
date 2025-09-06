@@ -2,10 +2,8 @@ package com.ecommerce.orderevent.controller;
 
 import com.ecommerce.orderevent.entity.User;
 import com.ecommerce.orderevent.service.UserService;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.*;
 
 @RestController
@@ -13,7 +11,6 @@ import java.util.*;
 public class UserController {
 
     private final UserService userService;
-
     public UserController(UserService userService){
         this.userService=userService;
     }
@@ -24,7 +21,7 @@ public class UserController {
     }
 
     @GetMapping("/{email}")
-    public ResponseEntity<?> getUserByEmail(@PathVariable String email) {
+    public ResponseEntity<User> getUserByEmail(@PathVariable String email) {
         return userService.getByEmail(email)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
