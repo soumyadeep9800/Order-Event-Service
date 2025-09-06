@@ -9,44 +9,13 @@ import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/users")
 public class UserController {
 
     private final UserService userService;
 
     public UserController(UserService userService){
         this.userService=userService;
-    }
-
-    @PostMapping("/register")
-    public ResponseEntity<Map<String, Object>> registerUser(@RequestBody User user){
-        Map<String, Object> response = new HashMap<>();
-        try {
-            userService.saveUser(user);
-            response.put("status", "success");
-            response.put("message", "User saved successfully!");
-            return ResponseEntity.status(HttpStatus.CREATED).body(response); // 201
-        } catch (IllegalArgumentException ex) {
-            response.put("status", "error");
-            response.put("message", ex.getMessage());
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(response); // 409
-        }
-    }
-
-    @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody Map<String,String> loginRequest){
-        String email= loginRequest.get("email");
-        String password= loginRequest.get("password");
-
-        return userService.getByEmail(email)
-                .map(user -> {
-                    if(user.getPassword().equals(password)){
-                        return ResponseEntity.ok("Login Successful!");
-                    }else{
-                        return ResponseEntity.badRequest().body("Invalid password");
-                    }
-                })
-                .orElse(ResponseEntity.badRequest().body("User not found"));
     }
 
     @GetMapping
