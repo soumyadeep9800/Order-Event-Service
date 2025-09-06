@@ -6,7 +6,6 @@ import com.ecommerce.orderevent.service.RestaurantService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-
 @RestController
 @RequestMapping("/menu-item")
 public class MenuItemController {
