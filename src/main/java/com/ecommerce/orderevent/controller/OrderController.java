@@ -4,9 +4,7 @@ import com.ecommerce.orderevent.entity.Order;
 import com.ecommerce.orderevent.service.OrderService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @RequestMapping("/orders")
@@ -22,7 +20,7 @@ public class OrderController {
         Long restaurantId = Long.valueOf(request.get("restaurantId").toString());
 
         @SuppressWarnings("unchecked")
-        List<Long> menuItemIds = (List<Long>) request.get("menuitemIds");
+        List<Long> menuItemIds = (List<Long>) request.get("menuItemIds");
 
         Order order = orderService.placeOrder(userId, restaurantId, menuItemIds);
         return ResponseEntity.ok(order);
