@@ -5,8 +5,7 @@ import com.ecommerce.orderevent.entity.Restaurant;
 import com.ecommerce.orderevent.service.MenuItemService;
 import com.ecommerce.orderevent.service.RestaurantService;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import java.util.*;
 
 @RestController
 @RequestMapping("/restaurants")
