@@ -41,6 +41,7 @@ class MenuItemServiceTest {
         menuItem.setPrice(12.5);
         menuItem.setRestaurant(restaurant);
     }
+
     @Test
     void testAddMenuItem_Success(){
         when(restaurantRepository.findById(1L)).thenReturn(Optional.of(restaurant));
