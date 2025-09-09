@@ -2,6 +2,7 @@ package com.ecommerce.orderevent.service;
 
 import com.ecommerce.orderevent.entity.MenuItem;
 import com.ecommerce.orderevent.entity.Restaurant;
+import com.ecommerce.orderevent.exception.ResourceNotFoundException;
 import com.ecommerce.orderevent.repository.RestaurantRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -60,6 +61,29 @@ class RestaurantServiceTest {
     }
 
     @Test
+    void testGetRestaurantById_Success() {
+        Restaurant restaurant = new Restaurant();
+        restaurant.setId(1L);
+        restaurant.setName("Test Restaurant");
+
+        when(restaurantRepository.findById(1L)).thenReturn(Optional.of(restaurant));
+        Restaurant result = restaurantService.getRestaurantById(1L);
+        assertNotNull(result);
+        assertEquals("Test Restaurant", result.getName());
+        verify(restaurantRepository, times(1)).findById(1L);
+    }
+
+    @Test
+    void testGetRestaurantById_NotFound() {
+        when(restaurantRepository.findById(2L)).thenReturn(Optional.empty());
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            restaurantService.getRestaurantById(2L);
+        });
+        assertEquals(RESTAURANT_NOT_FOUND + 2L, exception.getMessage());
+        verify(restaurantRepository, times(1)).findById(2L);
+    }
+
+    @Test
     void testGetRestaurantWithMenu_Found() {
         Restaurant restaurant = new Restaurant();
         restaurant.setId(1L);
@@ -80,6 +104,53 @@ class RestaurantServiceTest {
 
         assertEquals( RESTAURANT_NOT_FOUND + 99, exception.getMessage());
         verify(restaurantRepository, times(1)).findById(99L);
+    }
+
+    @Test
+    void testUpdateRestaurant_Success() {
+        // Existing restaurant
+        Restaurant existingRestaurant = new Restaurant();
+        existingRestaurant.setId(1L);
+        existingRestaurant.setName("Old Name");
+        existingRestaurant.setAddress("Old Address");
+        existingRestaurant.setContact("1111");
+        // Updated request
+        Restaurant updatedRestaurant = new Restaurant();
+        updatedRestaurant.setName("New Name");
+        updatedRestaurant.setAddress("New Address");
+        updatedRestaurant.setContact("2222");
+        // Add menu items
+        MenuItem item1 = new MenuItem();
+        item1.setId(10L);
+        item1.setName("Pizza");
+
+        updatedRestaurant.setMenuItems(List.of(item1));
+        when(restaurantRepository.findById(1L)).thenReturn(Optional.of(existingRestaurant));
+        when(restaurantRepository.save(existingRestaurant)).thenReturn(existingRestaurant);
+        Restaurant result = restaurantService.updateRestaurant(1L, updatedRestaurant);
+
+        assertNotNull(result);
+        assertEquals("New Name", result.getName());
+        assertEquals("New Address", result.getAddress());
+        assertEquals("2222", result.getContact());
+        assertEquals(1, result.getMenuItems().size());
+        assertEquals(existingRestaurant, result.getMenuItems().get(0).getRestaurant());
+        verify(restaurantRepository, times(1)).findById(1L);
+        verify(restaurantRepository, times(1)).save(existingRestaurant);
+    }
+
+    @Test
+    void testUpdateRestaurant_NotFound() {
+        Restaurant updatedRestaurant = new Restaurant();
+        updatedRestaurant.setName("New Name");
+
+        when(restaurantRepository.findById(1L)).thenReturn(Optional.empty());
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            restaurantService.updateRestaurant(1L, updatedRestaurant);
+        });
+        assertEquals(RESTAURANT_NOT_FOUND + 1L, exception.getMessage());
+        verify(restaurantRepository, times(1)).findById(1L);
+        verify(restaurantRepository, never()).save(any(Restaurant.class));
     }
 
     @Test
