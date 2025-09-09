@@ -107,13 +107,83 @@ class OrderServiceTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(restaurantRepository.findById(1L)).thenReturn(Optional.of(restaurant));
         when(menuItemRepository.findAllById(List.of(1L))).thenReturn(Collections.emptyList());
-
         Exception ex = assertThrows(ResourceNotFoundException.class, () ->
                 orderService.placeOrder(1L, 1L, List.of(1L)));
-
         assertTrue(ex.getMessage().contains(MENU_ITEM_NOT_FOUND));
         verify(orderRepository, never()).save(any(Order.class));
     }
+
+    @Test
+    void testGetOrderDetails_Success() {
+        Order order = new Order();
+        order.setId(300L);
+        order.setStatus("PLACED");
+
+        when(orderRepository.findById(300L)).thenReturn(Optional.of(order));
+        Order result = orderService.getOrderDetails(300L);
+
+        assertNotNull(result);
+        assertEquals(300L, result.getId());
+        assertEquals("PLACED", result.getStatus());
+        verify(orderRepository, times(1)).findById(300L);
+    }
+
+    @Test
+    void testGetOrderDetails_NotFound() {
+        when(orderRepository.findById(300L)).thenReturn(Optional.empty());
+        Exception ex = assertThrows(ResourceNotFoundException.class,
+                () -> orderService.getOrderDetails(300L));
+        assertEquals(ORDER_ITEM_NOT_FOUND + 300L, ex.getMessage());
+        verify(orderRepository, times(1)).findById(300L);
+    }
+
+    @Test
+    void testGetOrdersByRestaurant_Success() {
+        Order order = new Order();
+        order.setId(400L);
+        order.setRestaurant(restaurant);
+
+        when(restaurantRepository.findById(1L)).thenReturn(Optional.of(restaurant));
+        when(orderRepository.findByRestaurantId(1L)).thenReturn(List.of(order));
+        List<Order> result = orderService.getOrdersByRestaurant(1L);
+        assertEquals(1, result.size());
+        assertEquals(400L, result.get(0).getId());
+        verify(restaurantRepository, times(1)).findById(1L);
+        verify(orderRepository, times(1)).findByRestaurantId(1L);
+    }
+
+    @Test
+    void testGetOrdersByRestaurant_RestaurantNotFound() {
+        when(restaurantRepository.findById(1L)).thenReturn(Optional.empty());
+        Exception ex = assertThrows(ResourceNotFoundException.class,
+                () -> orderService.getOrdersByRestaurant(1L));
+        assertEquals(RESTAURANT_NOT_FOUND + 1L, ex.getMessage());
+        verify(orderRepository, never()).findByRestaurantId(anyLong());
+    }
+
+    @Test
+    void testUpdateOrderStatus_Success() {
+        Order order = new Order();
+        order.setId(500L);
+        order.setStatus("PLACED");
+
+        when(orderRepository.findById(500L)).thenReturn(Optional.of(order));
+        when(orderRepository.save(order)).thenReturn(order);
+        Order result = orderService.updateOrderStatus(500L, "DELIVERED");
+        assertEquals("DELIVERED", result.getStatus());
+        verify(orderRepository, times(1)).findById(500L);
+        verify(orderRepository, times(1)).save(order);
+    }
+
+    @Test
+    void testUpdateOrderStatus_NotFound() {
+        when(orderRepository.findById(500L)).thenReturn(Optional.empty());
+        Exception ex = assertThrows(ResourceNotFoundException.class,
+                () -> orderService.updateOrderStatus(500L, "DELIVERED"));
+        assertEquals(ORDER_ITEM_NOT_FOUND + 500L, ex.getMessage());
+        verify(orderRepository, never()).save(any(Order.class));
+    }
+
 
     @Test
     void testGetUserOrders(){
