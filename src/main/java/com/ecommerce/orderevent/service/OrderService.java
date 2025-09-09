@@ -35,9 +35,9 @@ public class OrderService {
 
     public Order placeOrder(Long userId, Long restaurantId, List<Long> menuItemIds){
         User user = userRepository.findById(userId)
-                .orElseThrow(()-> new ResourceNotFoundException(USER_NOT_FOUND));
+                .orElseThrow(()-> new ResourceNotFoundException(USER_NOT_FOUND + userId));
         Restaurant restaurant = restaurantRepository.findById(restaurantId)
-                .orElseThrow(()-> new ResourceNotFoundException(RESTAURANT_NOT_FOUND));
+                .orElseThrow(()-> new ResourceNotFoundException(RESTAURANT_NOT_FOUND + restaurantId));
 
         List<MenuItem> items = menuItemRepository.findAllById(menuItemIds);
         if(items.isEmpty()) throw new ResourceNotFoundException( MENU_ITEM_NOT_FOUND + menuItemIds);
@@ -54,11 +54,34 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
-    public List<Order> getUserOrders(Long userId){
-        return orderRepository.findByUserId(userId);
+    public Order getOrderDetails(Long id){
+        return orderRepository.findById(id)
+                .orElseThrow(()-> new ResourceNotFoundException(ORDER_ITEM_NOT_FOUND + id));
     }
 
-    public void cancelOrder(Long orderId){
+    public List<Order> getOrdersByRestaurant(Long restaurantId) {
+        restaurantRepository.findById(restaurantId)
+                .orElseThrow(()-> new ResourceNotFoundException(RESTAURANT_NOT_FOUND + restaurantId));
+        return orderRepository.findByRestaurantId(restaurantId);
+    }
+
+    public Order updateOrderStatus(Long orderId, String status) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(()-> new ResourceNotFoundException(ORDER_ITEM_NOT_FOUND + orderId));
+        order.setStatus(status);
+        return orderRepository.save(order);
+    }
+
+    public List<Order> getUserOrders(Long userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new ResourceNotFoundException(USER_NOT_FOUND + userId);
+        }
+        return orderRepository.findByUserId(userId);
+    }
+    public void cancelOrder(Long orderId) {
+        if (!orderRepository.existsById(orderId)) {
+            throw new ResourceNotFoundException(ORDER_ITEM_NOT_FOUND + orderId);
+        }
         orderRepository.deleteById(orderId);
     }
 }

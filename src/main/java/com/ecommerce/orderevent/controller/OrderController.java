@@ -26,6 +26,26 @@ public class OrderController {
         return ResponseEntity.ok(order);
     }
 
+    @GetMapping("/{orderId}")
+    public ResponseEntity<Order> getOrderDetails(@PathVariable Long orderId){
+        Order order = orderService.getOrderDetails(orderId);
+        return ResponseEntity.ok(order);
+    }
+
+    @GetMapping("/restaurant/{restaurantId}")
+    public ResponseEntity<List<Order>> getOrdersByRestaurant(@PathVariable Long restaurantId) {
+        List<Order> orders = orderService.getOrdersByRestaurant(restaurantId);
+        return ResponseEntity.ok(orders);
+    }
+
+    @PutMapping("/{orderId}/status")
+    public ResponseEntity<Order> updateOrderStatus(
+            @PathVariable Long orderId,
+            @RequestParam String status) {
+        Order updatedOrder = orderService.updateOrderStatus(orderId, status);
+        return ResponseEntity.ok(updatedOrder);
+    }
+
     @GetMapping("user/{userId}")
     public ResponseEntity<List<Order>> getUserOrders(@PathVariable Long userId){
         List<Order> orders = orderService.getUserOrders(userId);
