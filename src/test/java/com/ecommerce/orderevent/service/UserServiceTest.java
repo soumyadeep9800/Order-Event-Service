@@ -48,6 +48,51 @@ class UserServiceTest {
     }
 
     @Test
+    void testUpdateUser_Success() {
+        // Existing user in DB
+        User existingUser = new User();
+        existingUser.setId(1L);
+        existingUser.setName("Old Name");
+        existingUser.setEmail("old@example.com");
+        existingUser.setPassword("oldPass");
+        // Updated user request
+        User updatedUser = new User();
+        updatedUser.setName("New Name");
+        updatedUser.setEmail("new@example.com");
+        updatedUser.setPassword("newPass");
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
+        when(userRepository.save(existingUser)).thenReturn(existingUser);
+        User result = userService.updateUser(1L, updatedUser);
+
+        assertNotNull(result);
+        assertEquals("New Name", result.getName());
+        assertEquals("new@example.com", result.getEmail());
+        assertEquals("newPass", result.getPassword());
+        verify(userRepository, times(1)).findById(1L);
+        verify(userRepository, times(1)).save(existingUser);
+    }
+
+    @Test
+    void testUpdateUser_NotFound() {
+        User updatedUser = new User();
+        updatedUser.setName("New Name");
+        updatedUser.setEmail("new@example.com");
+        updatedUser.setPassword("newPass");
+
+        when(userRepository.findById(2L)).thenReturn(Optional.empty());
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            userService.updateUser(2L, updatedUser);
+        });
+
+        assertEquals(USER_NOT_FOUND + 2L, exception.getMessage());
+        verify(userRepository, times(1)).findById(2L);
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+
+    @Test
     void testGetAllUser(){
         User user1 = new User();
         user1.setId(1L);
