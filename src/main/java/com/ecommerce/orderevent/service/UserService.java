@@ -6,6 +6,8 @@ import com.ecommerce.orderevent.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import java.util.*;
 
+import static com.ecommerce.orderevent.constants.ErrorMessages.USER_NOT_FOUND;
+
 @Service
 public class UserService {
 
@@ -24,7 +26,7 @@ public class UserService {
 
     public User updateUser(Long id, User updatedUser) {
         User existingUser = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException( USER_NOT_FOUND + id));
 
         existingUser.setName(updatedUser.getName());
         existingUser.setEmail(updatedUser.getEmail());

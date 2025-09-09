@@ -8,6 +8,8 @@ import com.ecommerce.orderevent.repository.RestaurantRepository;
 import org.springframework.stereotype.Service;
 import java.util.*;
 
+import static com.ecommerce.orderevent.constants.ErrorMessages.RESTAURANT_NOT_FOUND;
+
 @Service
 public class MenuItemService {
     private final MenuItemRepository menuItemRepository;
@@ -20,7 +22,7 @@ public class MenuItemService {
 
     public MenuItem addMenuItem(Long restaurantId, MenuItem menuItem){
         Restaurant restaurant = restaurantRepository.findById(restaurantId)
-                .orElseThrow(() -> new ResourceNotFoundException("Restaurant not found with id: " + restaurantId));
+                .orElseThrow(() -> new ResourceNotFoundException( RESTAURANT_NOT_FOUND + restaurantId));
 
         menuItem.setRestaurant(restaurant);
         return menuItemRepository.save(menuItem);
@@ -28,7 +30,7 @@ public class MenuItemService {
 
     public List<MenuItem> getMenuItemsByRestaurant(Long restaurantId) {
         Restaurant restaurant = restaurantRepository.findById(restaurantId)
-                .orElseThrow(() ->  new ResourceNotFoundException("Restaurant not found with id: " + restaurantId));
+                .orElseThrow(() ->  new ResourceNotFoundException( RESTAURANT_NOT_FOUND + restaurantId));
         return restaurant.getMenuItems();
     }
 

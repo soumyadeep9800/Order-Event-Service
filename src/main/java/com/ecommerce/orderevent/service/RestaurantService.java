@@ -5,6 +5,8 @@ import com.ecommerce.orderevent.exception.ResourceNotFoundException;
 import com.ecommerce.orderevent.repository.RestaurantRepository;
 import org.springframework.stereotype.Service;
 import java.util.*;
+import static com.ecommerce.orderevent.constants.ErrorMessages.RESTAURANT_NOT_FOUND;
+
 @Service
 public class RestaurantService {
     private final RestaurantRepository restaurantRepository;
@@ -25,17 +27,17 @@ public class RestaurantService {
 
     public Restaurant getRestaurantById(Long id){
         return restaurantRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Restaurant not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(RESTAURANT_NOT_FOUND+ id));
     }
 
     public Restaurant getRestaurantWithMenu(Long id) {
         return restaurantRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Restaurant not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(RESTAURANT_NOT_FOUND+ id));
     }
 
     public Restaurant updateRestaurant(Long id, Restaurant updatedRestaurant) {
         Restaurant existingRestaurant = restaurantRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Restaurant not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(RESTAURANT_NOT_FOUND+ id));
 
         // Update allowed fields
         existingRestaurant.setName(updatedRestaurant.getName());

@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.*;
 
+import static com.ecommerce.orderevent.constants.ErrorMessages.*;
+
 @Service
 public class OrderService {
 
@@ -33,12 +35,12 @@ public class OrderService {
 
     public Order placeOrder(Long userId, Long restaurantId, List<Long> menuItemIds){
         User user = userRepository.findById(userId)
-                .orElseThrow(()-> new ResourceNotFoundException("User Not Found!"));
+                .orElseThrow(()-> new ResourceNotFoundException(USER_NOT_FOUND));
         Restaurant restaurant = restaurantRepository.findById(restaurantId)
-                .orElseThrow(()-> new ResourceNotFoundException("Restaurant Not Found!"));
+                .orElseThrow(()-> new ResourceNotFoundException(RESTAURANT_NOT_FOUND));
 
         List<MenuItem> items = menuItemRepository.findAllById(menuItemIds);
-        if(items.isEmpty()) throw new ResourceNotFoundException("No valid menu items found for given IDs: " + menuItemIds);
+        if(items.isEmpty()) throw new ResourceNotFoundException( MENU_ITEM_NOT_FOUND + menuItemIds);
         //calculate total price
         double totalPrice = items.stream().mapToDouble(MenuItem::getPrice).sum();
 
