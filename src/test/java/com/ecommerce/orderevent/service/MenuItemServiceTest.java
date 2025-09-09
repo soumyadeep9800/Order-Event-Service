@@ -83,6 +83,37 @@ class MenuItemServiceTest {
     }
 
     @Test
+    void testUpdateMenuItem_Success() {
+        MenuItem updatedMenuItem = new MenuItem();
+        updatedMenuItem.setName("Burger");
+        updatedMenuItem.setDescription("Cheesy Burger");
+        updatedMenuItem.setPrice(8.5);
+        updatedMenuItem.setRestaurant(restaurant);
+
+        when(menuItemRepository.findById(10L)).thenReturn(Optional.of(menuItem));
+        when(menuItemRepository.save(menuItem)).thenReturn(menuItem);
+        MenuItem result = menuItemService.updateMenuItem(10L, updatedMenuItem);
+
+        assertNotNull(result);
+        assertEquals("Burger", result.getName());
+        assertEquals("Cheesy Burger", result.getDescription());
+        assertEquals(8.5, result.getPrice());
+        assertEquals(restaurant, result.getRestaurant());
+        verify(menuItemRepository, times(1)).findById(10L);
+        verify(menuItemRepository, times(1)).save(menuItem);
+    }
+
+    @Test
+    void testUpdateMenuItem_NotFound() {
+        MenuItem updatedMenuItem = new MenuItem();
+        updatedMenuItem.setName("Burger");
+        when(menuItemRepository.findById(99L)).thenReturn(Optional.empty());
+        assertThrows(ResourceNotFoundException.class,
+                () -> menuItemService.updateMenuItem(99L, updatedMenuItem));
+        verify(menuItemRepository, never()).save(any(MenuItem.class));
+    }
+
+    @Test
     void testFindMenuItem_Success() {
         when(menuItemRepository.findById(10L)).thenReturn(Optional.of(menuItem));
         Optional<MenuItem> result = menuItemService.findMenuItem(10L);
