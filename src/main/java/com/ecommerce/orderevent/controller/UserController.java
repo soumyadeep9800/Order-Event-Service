@@ -22,9 +22,8 @@ public class UserController {
 
     @GetMapping("/{email}")
     public ResponseEntity<User> getUserByEmail(@PathVariable String email) {
-        return userService.getByEmail(email)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+            User user = userService.getByEmail(email);
+            return ResponseEntity.ok(user);
     }
 
     @PutMapping("/{id}")

@@ -39,11 +39,15 @@ public class UserService {
         return userRepository.findAll();
     }
 
-    public Optional<User> getByEmail(String email) {
-        return userRepository.findByEmail(email);
+    public User getByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND + email));
     }
 
     public void deleteById(Long id){
+        if (!userRepository.existsById(id)) {
+            throw new ResourceNotFoundException(USER_NOT_FOUND + id);
+        }
         userRepository.deleteById(id);
     }
 }

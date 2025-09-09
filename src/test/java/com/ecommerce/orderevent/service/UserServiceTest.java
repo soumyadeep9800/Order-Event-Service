@@ -1,6 +1,7 @@
 package com.ecommerce.orderevent.service;
 
 import com.ecommerce.orderevent.entity.User;
+import com.ecommerce.orderevent.exception.ResourceNotFoundException;
 import com.ecommerce.orderevent.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -8,6 +9,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import static com.ecommerce.orderevent.constants.ErrorMessages.*;
 import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -68,22 +70,28 @@ class UserServiceTest {
         user.setEmail("found@example.com");
 
         when(userRepository.findByEmail("found@example.com")).thenReturn(Optional.of(user));
-        Optional<User> result = userService.getByEmail("found@example.com");
-        assertTrue(result.isPresent());
-        assertEquals("found@example.com", result.get().getEmail());
+        User result = userService.getByEmail("found@example.com");
+        assertNotNull(result);
+        assertEquals("found@example.com", result.getEmail());
     }
 
     @Test
     void testGetByEmail_NotFound(){
-        when(userRepository.findByEmail("Notfound@example.com")).thenReturn(Optional.empty());
-        Optional<User> result = userService.getByEmail("Notfound@example.com");
-        assertFalse(result.isPresent());
+        when(userRepository.findByEmail("Notfound@example.com"))
+                .thenReturn(Optional.empty()); // simulate user not found
+
+        Exception exception = assertThrows(ResourceNotFoundException.class, () -> {
+            userService.getByEmail("Notfound@example.com");
+        });
+        assertEquals( USER_NOT_FOUND + "Notfound@example.com", exception.getMessage());
     }
 
     @Test
     void testDeleteById(){
-        Long userId = 1L;
-        userService.deleteById(userId);
-        verify(userRepository, times(1)).deleteById(userId);
+        User user = new User();
+        user.setId(1L);
+        when(userRepository.existsById(1L)).thenReturn(true);
+        userService.deleteById(1L);
+        verify(userRepository, times(1)).deleteById(1L);
     }
 }

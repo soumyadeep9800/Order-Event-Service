@@ -39,14 +39,11 @@ public class PublicController {
         String email= loginRequest.get("email");
         String password= loginRequest.get("password");
 
-        return userService.getByEmail(email)
-                .map(user -> {
-                    if(user.getPassword().equals(password)){
-                        return ResponseEntity.ok("Login Successful!");
-                    }else{
-                        return ResponseEntity.badRequest().body("Invalid password");
-                    }
-                })
-                .orElse(ResponseEntity.badRequest().body("User not found"));
+        User user = userService.getByEmail(email);
+        if (user.getPassword().equals(password)) {
+            return ResponseEntity.ok("Login Successful!");
+        } else {
+            return ResponseEntity.badRequest().body("Invalid password");
+        }
     }
 }
