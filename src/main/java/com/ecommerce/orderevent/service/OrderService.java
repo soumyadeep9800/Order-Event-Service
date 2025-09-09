@@ -78,6 +78,7 @@ public class OrderService {
         }
         return orderRepository.findByUserId(userId);
     }
+
     public void cancelOrder(Long orderId) {
         if (!orderRepository.existsById(orderId)) {
             throw new ResourceNotFoundException(ORDER_ITEM_NOT_FOUND + orderId);

@@ -12,6 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static com.ecommerce.orderevent.constants.ErrorMessages.*;
 
 @ExtendWith(MockitoExtension.class)
 class RestaurantServiceTest {
@@ -77,7 +78,7 @@ class RestaurantServiceTest {
         RuntimeException exception = assertThrows(RuntimeException.class,
                 () -> restaurantService.getRestaurantWithMenu(99L));
 
-        assertEquals("Restaurant not found", exception.getMessage());
+        assertEquals( RESTAURANT_NOT_FOUND + 99, exception.getMessage());
         verify(restaurantRepository, times(1)).findById(99L);
     }
 

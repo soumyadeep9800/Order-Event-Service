@@ -16,6 +16,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import static com.ecommerce.orderevent.constants.ErrorMessages.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import java.util.*;
@@ -85,7 +86,7 @@ class OrderServiceTest {
         Exception ex = assertThrows(ResourceNotFoundException.class, () ->
                 orderService.placeOrder(1L, 1L, List.of(1L)));
 
-        assertEquals("User Not Found!", ex.getMessage());
+        assertEquals(USER_NOT_FOUND + 1, ex.getMessage());
         verify(orderRepository, never()).save(any(Order.class));
     }
 
@@ -97,7 +98,7 @@ class OrderServiceTest {
         Exception ex = assertThrows(ResourceNotFoundException.class, () ->
                 orderService.placeOrder(1L, 1L, List.of(1L)));
 
-        assertEquals("Restaurant Not Found!", ex.getMessage());
+        assertEquals(RESTAURANT_NOT_FOUND + 1, ex.getMessage());
         verify(orderRepository, never()).save(any(Order.class));
     }
 
@@ -110,7 +111,7 @@ class OrderServiceTest {
         Exception ex = assertThrows(ResourceNotFoundException.class, () ->
                 orderService.placeOrder(1L, 1L, List.of(1L)));
 
-        assertTrue(ex.getMessage().contains("No valid menu items found"));
+        assertTrue(ex.getMessage().contains(MENU_ITEM_NOT_FOUND));
         verify(orderRepository, never()).save(any(Order.class));
     }
 
@@ -120,18 +121,22 @@ class OrderServiceTest {
         order.setId(101L);
         order.setUser(user);
 
-        when(orderRepository.findByUserId(101L)).thenReturn(List.of(order));
+        when(userRepository.existsById(1L)).thenReturn(true);
+        when(orderRepository.findByUserId(1L)).thenReturn(List.of(order));
         List<Order> result = orderService.getUserOrders(1L);
         assertEquals(1,result.size());
         assertEquals(101L, result.get(0).getId());
+        verify(userRepository, times(1)).existsById(1L);
         verify(orderRepository, times(1)).findByUserId(1L);
     }
 
     @Test
     void testCancelOrder() {
         Long orderId = 200L;
+        when(orderRepository.existsById(orderId)).thenReturn(true);
         doNothing().when(orderRepository).deleteById(orderId);
         orderService.cancelOrder(orderId);
+        verify(orderRepository, times(1)).existsById(orderId);
         verify(orderRepository, times(1)).deleteById(orderId);
     }
 }
