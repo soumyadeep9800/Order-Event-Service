@@ -1,5 +1,6 @@
 package com.ecommerce.orderevent.service;
 
+import com.ecommerce.orderevent.entity.Order;
 import com.ecommerce.orderevent.entity.User;
 import com.ecommerce.orderevent.exception.ResourceNotFoundException;
 import com.ecommerce.orderevent.repository.UserRepository;
@@ -42,6 +43,12 @@ public class UserService {
     public User getByEmail(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND + email));
+    }
+
+    public List<Order> getUserOrders(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND + userId));
+        return user.getOrders();
     }
 
     public void deleteById(Long id){

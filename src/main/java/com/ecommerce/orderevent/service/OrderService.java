@@ -47,10 +47,12 @@ public class OrderService {
         Order order = new Order();
         order.setUser(user);
         order.setRestaurant(restaurant);
+        order.setItems(items);
         order.setOrderDate(LocalDateTime.now());
         order.setStatus("PLACED");
         order.setTotalPrice(totalPrice);
-
+        // ✅ maintain both sides of the relationship
+        user.getOrders().add(order);
         return orderRepository.save(order);
     }
 
