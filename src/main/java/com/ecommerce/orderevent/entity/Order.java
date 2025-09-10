@@ -31,11 +31,7 @@ public class Order {
             inverseJoinColumns = @JoinColumn(name = "menu_item_id")
     )
     private List<MenuItem> items;
-
     private LocalDateTime orderDate;
-
     private String status;  // e.g., PLACED, CONFIRMED, DELIVERED, CANCELLED
-
     private Double totalPrice;
-
 }
