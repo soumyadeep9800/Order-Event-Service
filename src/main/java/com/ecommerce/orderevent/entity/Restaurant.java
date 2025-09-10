@@ -1,5 +1,6 @@
 package com.ecommerce.orderevent.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -22,5 +23,6 @@ public class Restaurant {
 
     // One Restaurant → Many MenuItems
     @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<MenuItem> menuItems;
 }

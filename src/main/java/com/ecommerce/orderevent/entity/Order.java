@@ -1,9 +1,11 @@
 package com.ecommerce.orderevent.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
 import java.util.*;
+
 @Entity
 @Data
 @Table(name = "orders")
@@ -16,6 +18,7 @@ public class Order {
     // One User → Many Orders
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonBackReference
     private User user;
 
     // One Restaurant → Many Orders

@@ -2,12 +2,14 @@ package com.ecommerce.orderevent.controller;
 
 import com.ecommerce.orderevent.entity.User;
 import com.ecommerce.orderevent.service.UserService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
 @RestController
 @RequestMapping("/users")
+@Tag(name = "User Management", description = "Endpoints for managing users")
 public class UserController {
 
     private final UserService userService;

@@ -3,11 +3,13 @@ package com.ecommerce.orderevent.controller;
 import com.ecommerce.orderevent.entity.MenuItem;
 import com.ecommerce.orderevent.service.MenuItemService;
 import com.ecommerce.orderevent.service.RestaurantService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/menu-item")
+@Tag(name = "Menu Item Management", description = "Endpoints for managing menu items")
 public class MenuItemController {
     private final RestaurantService restaurantService;
     private final MenuItemService menuItemService;

@@ -4,12 +4,14 @@ import com.ecommerce.orderevent.entity.MenuItem;
 import com.ecommerce.orderevent.entity.Restaurant;
 import com.ecommerce.orderevent.service.MenuItemService;
 import com.ecommerce.orderevent.service.RestaurantService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
 @RestController
 @RequestMapping("/restaurants")
+@Tag(name = "Restaurant Management", description = "Endpoints for managing restaurants")
 public class RestaurantController {
     private final RestaurantService restaurantService;
     private final MenuItemService menuItemService;

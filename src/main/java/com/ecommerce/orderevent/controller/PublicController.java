@@ -2,6 +2,7 @@ package com.ecommerce.orderevent.controller;
 
 import com.ecommerce.orderevent.entity.User;
 import com.ecommerce.orderevent.service.UserService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -12,6 +13,7 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/public")
+@Tag(name = "Public APIs", description = "Endpoints accessible without authentication")
 public class PublicController {
 
     private final UserService userService;

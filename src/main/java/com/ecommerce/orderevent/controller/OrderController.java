@@ -2,12 +2,14 @@ package com.ecommerce.orderevent.controller;
 
 import com.ecommerce.orderevent.entity.Order;
 import com.ecommerce.orderevent.service.OrderService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
 @RestController
 @RequestMapping("/orders")
+@Tag(name = "Order Management", description = "Endpoints for managing orders")
 public class OrderController {
     private final OrderService orderService;
     public  OrderController(OrderService orderService){
