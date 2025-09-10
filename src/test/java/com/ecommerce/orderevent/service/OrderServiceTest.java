@@ -44,6 +44,7 @@ class OrderServiceTest {
         user.setId(1L);
         user.setName("John");
         user.setEmail("John@example.com");
+        user.setOrders(new ArrayList<>());
 
         restaurant = new Restaurant();
         restaurant.setId(1L);
@@ -56,7 +57,7 @@ class OrderServiceTest {
     }
 
     @Test
-    void testPlaceOrder_Success(){
+    void testPlaceOrder_Success() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(restaurantRepository.findById(1L)).thenReturn(Optional.of(restaurant));
         when(menuItemRepository.findAllById(List.of(1L))).thenReturn(List.of(menuItem));
@@ -71,11 +72,25 @@ class OrderServiceTest {
 
         when(orderRepository.save(any(Order.class))).thenReturn(savedOrder);
         Order result = orderService.placeOrder(1L, 1L, List.of(1L));
-
+        // Assertions
         assertNotNull(result);
         assertEquals(100L, result.getId());
         assertEquals(10.0, result.getTotalPrice());
         assertEquals("PLACED", result.getStatus());
+        assertEquals(user, result.getUser());
+        assertEquals(restaurant, result.getRestaurant());
+
+        // ✅ Ensure user has an order, validate fields instead of object equality
+        assertNotNull(user.getOrders());
+        assertFalse(user.getOrders().isEmpty());
+        Order userOrder = user.getOrders().get(0);
+        assertEquals("PLACED", userOrder.getStatus());
+        assertEquals(user, userOrder.getUser());
+
+        // Verify repository interactions
+        verify(userRepository, times(1)).findById(1L);
+        verify(restaurantRepository, times(1)).findById(1L);
+        verify(menuItemRepository, times(1)).findAllById(List.of(1L));
         verify(orderRepository, times(1)).save(any(Order.class));
     }
 

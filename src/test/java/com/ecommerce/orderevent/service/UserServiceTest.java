@@ -1,5 +1,6 @@
 package com.ecommerce.orderevent.service;
 
+import com.ecommerce.orderevent.entity.Order;
 import com.ecommerce.orderevent.entity.User;
 import com.ecommerce.orderevent.exception.ResourceNotFoundException;
 import com.ecommerce.orderevent.repository.UserRepository;
@@ -129,6 +130,36 @@ class UserServiceTest {
             userService.getByEmail("Notfound@example.com");
         });
         assertEquals( USER_NOT_FOUND + "Notfound@example.com", exception.getMessage());
+    }
+
+    @Test
+    void testGetUserOrders_Success() {
+        User user = new User();
+        user.setId(1L);
+
+        Order order1 = new Order();
+        order1.setId(101L);
+        Order order2 = new Order();
+        order2.setId(102L);
+        user.setOrders(List.of(order1, order2));
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        List<Order> result = userService.getUserOrders(1L);
+
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertEquals(101L, result.get(0).getId());
+        assertEquals(102L, result.get(1).getId());
+        verify(userRepository, times(1)).findById(1L);
+    }
+
+    @Test
+    void testGetUserOrders_UserNotFound() {
+        when(userRepository.findById(99L)).thenReturn(Optional.empty());
+        ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
+                () -> userService.getUserOrders(99L));
+        assertEquals(USER_NOT_FOUND + 99L, ex.getMessage());
+        verify(userRepository, times(1)).findById(99L);
     }
 
     @Test

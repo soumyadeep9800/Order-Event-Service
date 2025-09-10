@@ -51,8 +51,13 @@ public class OrderService {
         order.setOrderDate(LocalDateTime.now());
         order.setStatus("PLACED");
         order.setTotalPrice(totalPrice);
-        // ✅ maintain both sides of the relationship
+
+        if (user.getOrders() == null) {
+            user.setOrders(new ArrayList<>());
+        }// ✅ maintain both sides of the relationship
         user.getOrders().add(order);
+        userRepository.save(user);
+
         return orderRepository.save(order);
     }
 

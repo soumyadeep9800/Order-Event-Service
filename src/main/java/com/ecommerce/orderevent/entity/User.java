@@ -3,8 +3,7 @@ package com.ecommerce.orderevent.entity;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
-
-import java.util.List;
+import java.util.*;
 
 @Entity
 @Table(name = "users")
@@ -25,5 +24,5 @@ public class User {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
-    private List<Order> orders;
+    private List<Order> orders = new ArrayList<>();
 }
