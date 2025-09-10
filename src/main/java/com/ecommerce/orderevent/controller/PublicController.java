@@ -1,5 +1,6 @@
 package com.ecommerce.orderevent.controller;
 
+import com.ecommerce.orderevent.dto.ApiResponse;
 import com.ecommerce.orderevent.entity.User;
 import com.ecommerce.orderevent.service.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -9,6 +10,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.time.LocalDateTime;
 import java.util.*;
 
 @RestController
@@ -22,30 +25,33 @@ public class PublicController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<Map<String, Object>> registerUser(@RequestBody User user){
-        Map<String, Object> response = new HashMap<>();
+    public ResponseEntity<ApiResponse<User>> registerUser(@RequestBody User user) {
         try {
-            userService.saveUser(user);
-            response.put("status", "success");
-            response.put("message", "User saved successfully!");
-            return ResponseEntity.status(HttpStatus.CREATED).body(response); // 201
+            User savedUser = userService.saveUser(user);
+            ApiResponse<User> response = new ApiResponse<>("success", "User saved successfully!", savedUser, LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.CREATED).body(response); // 201 Created
         } catch (IllegalArgumentException ex) {
-            response.put("status", "error");
-            response.put("message", ex.getMessage());
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(response); // 409
+            ApiResponse<User> response = new ApiResponse<>("error", ex.getMessage(),  null, LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(response); // 409 Conflict
         }
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody Map<String,String> loginRequest){
-        String email= loginRequest.get("email");
-        String password= loginRequest.get("password");
-
-        User user = userService.getByEmail(email);
-        if (user.getPassword().equals(password)) {
-            return ResponseEntity.ok("Login Successful!");
-        } else {
-            return ResponseEntity.badRequest().body("Invalid password");
+    public ResponseEntity<ApiResponse<User>> login(@RequestBody Map<String,String> loginRequest){
+        String email = loginRequest.get("email");
+        String password = loginRequest.get("password");
+        try {
+            User user = userService.getByEmail(email);
+            ApiResponse<User> response = new ApiResponse<>("success", "User login successfully!", user, LocalDateTime.now());
+            if (user.getPassword().equals(password)) {
+                return ResponseEntity.ok(response);     // 200
+            } else {
+                response = new ApiResponse<>("failed", "User login failed!", user, LocalDateTime.now());
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);  // 401
+            }
+        } catch (IllegalArgumentException ex) {
+            ApiResponse<User> response = new ApiResponse<>("failed", ex.getMessage(), null, LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response); // 404
         }
     }
 }

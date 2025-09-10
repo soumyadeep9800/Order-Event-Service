@@ -18,11 +18,11 @@ public class UserService {
         this.userRepository=userRepository;
     }
 
-    public void saveUser(User user){
+    public User saveUser(User user){
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
             throw new IllegalArgumentException("User already exists with this email!");
         }
-        userRepository.save(user);
+        return userRepository.save(user);
     }
 
     public User updateUser(Long id, User updatedUser) {
