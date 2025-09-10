@@ -10,7 +10,7 @@ public class SwaggerConfig {
 
     @Bean
     public OpenAPI customOpenAPI() {
-        return new OpenAPI()
+        return new OpenAPI() //http://localhost:8080/swagger-ui/index.html
                 .info(new Info()
                         .title("Order-Event-Service API")
                         .version("1.0")
