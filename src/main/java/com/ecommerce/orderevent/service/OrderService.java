@@ -79,13 +79,6 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
-    public List<Order> getUserOrders(Long userId) {
-        if (!userRepository.existsById(userId)) {
-            throw new ResourceNotFoundException(USER_NOT_FOUND + userId);
-        }
-        return orderRepository.findByUserId(userId);
-    }
-
     public void cancelOrder(Long orderId) {
         if (!orderRepository.existsById(orderId)) {
             throw new ResourceNotFoundException(ORDER_ITEM_NOT_FOUND + orderId);

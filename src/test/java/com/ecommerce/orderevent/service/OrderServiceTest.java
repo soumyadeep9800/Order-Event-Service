@@ -199,22 +199,6 @@ class OrderServiceTest {
         verify(orderRepository, never()).save(any(Order.class));
     }
 
-
-    @Test
-    void testGetUserOrders(){
-        Order order = new Order();
-        order.setId(101L);
-        order.setUser(user);
-
-        when(userRepository.existsById(1L)).thenReturn(true);
-        when(orderRepository.findByUserId(1L)).thenReturn(List.of(order));
-        List<Order> result = orderService.getUserOrders(1L);
-        assertEquals(1,result.size());
-        assertEquals(101L, result.get(0).getId());
-        verify(userRepository, times(1)).existsById(1L);
-        verify(orderRepository, times(1)).findByUserId(1L);
-    }
-
     @Test
     void testCancelOrder() {
         Long orderId = 200L;

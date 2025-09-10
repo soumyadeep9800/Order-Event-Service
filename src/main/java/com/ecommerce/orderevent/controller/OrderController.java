@@ -16,7 +16,7 @@ public class OrderController {
         this.orderService=orderService;
     }
 
-    @PostMapping()
+    @PostMapping("/placeOrder")
     public ResponseEntity<Order> placeOrder(@RequestBody Map<String, Object> request){
         Long userId = Long.valueOf(request.get("UserId").toString());
         Long restaurantId = Long.valueOf(request.get("restaurantId").toString());
@@ -46,12 +46,6 @@ public class OrderController {
             @RequestParam String status) {
         Order updatedOrder = orderService.updateOrderStatus(orderId, status);
         return ResponseEntity.ok(updatedOrder);
-    }
-
-    @GetMapping("user/{userId}")
-    public ResponseEntity<List<Order>> getUserOrders(@PathVariable Long userId){
-        List<Order> orders = orderService.getUserOrders(userId);
-        return ResponseEntity.ok(orders);
     }
 
     @DeleteMapping("/{orderId}")
