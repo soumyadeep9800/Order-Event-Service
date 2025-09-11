@@ -82,7 +82,7 @@ public class RestaurantController {
                 restaurant,
                 LocalDateTime.now()
         );
-        return ResponseEntity.ok(response);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
     }
 
     @DeleteMapping("/{id}")
