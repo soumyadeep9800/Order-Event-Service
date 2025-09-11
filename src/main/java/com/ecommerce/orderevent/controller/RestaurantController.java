@@ -1,6 +1,6 @@
 package com.ecommerce.orderevent.controller;
 
-import com.ecommerce.orderevent.dto.ApiResponse;
+import com.ecommerce.orderevent.dtos.ApiResponse;
 import static com.ecommerce.orderevent.constants.ApiResponseStatus.SUCCESS;
 import com.ecommerce.orderevent.entity.MenuItem;
 import com.ecommerce.orderevent.entity.Restaurant;

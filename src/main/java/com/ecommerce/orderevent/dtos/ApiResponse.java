@@ -1,4 +1,4 @@
-package com.ecommerce.orderevent.dto;
+package com.ecommerce.orderevent.dtos;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

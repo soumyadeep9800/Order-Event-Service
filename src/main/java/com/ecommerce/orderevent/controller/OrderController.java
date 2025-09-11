@@ -5,7 +5,7 @@ import com.ecommerce.orderevent.service.OrderService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import com.ecommerce.orderevent.dto.ApiResponse;
+import com.ecommerce.orderevent.dtos.ApiResponse;
 import static com.ecommerce.orderevent.constants.ApiResponseStatus.SUCCESS;
 import org.springframework.web.bind.annotation.*;
 
