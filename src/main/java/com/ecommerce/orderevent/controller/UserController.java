@@ -5,6 +5,7 @@ import com.ecommerce.orderevent.entity.Order;
 import com.ecommerce.orderevent.entity.User;
 import com.ecommerce.orderevent.service.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import static com.ecommerce.orderevent.constants.ApiResponseStatus.SUCCESS;
@@ -70,8 +71,14 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable Long id) {
         userService.deleteById(id);
-        return ResponseEntity.noContent().build();
+        ApiResponse<Void> response = new ApiResponse<>(
+                SUCCESS,
+                "User deleted successfully!",
+                null,
+                LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(response);
     }
 }
