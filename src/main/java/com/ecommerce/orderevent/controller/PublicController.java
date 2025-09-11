@@ -1,6 +1,7 @@
 package com.ecommerce.orderevent.controller;
 
 import com.ecommerce.orderevent.dto.ApiResponse;
+import static com.ecommerce.orderevent.constants.ApiResponseStatus.SUCCESS;
 import com.ecommerce.orderevent.entity.User;
 import com.ecommerce.orderevent.service.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -28,7 +29,7 @@ public class PublicController {
     public ResponseEntity<ApiResponse<User>> registerUser(@RequestBody User user) {
             User savedUser = userService.saveUser(user); // throws ResourceNotFoundException if not found
             ApiResponse<User> response = new ApiResponse<>(
-                    "success",
+                    SUCCESS,
                     "User saved successfully!",
                     savedUser,
                     LocalDateTime.now()
@@ -45,7 +46,7 @@ public class PublicController {
         if (!user.getPassword().equals(password)) throw new IllegalArgumentException("Invalid password!");
 
         ApiResponse<User> response = new ApiResponse<>(
-                "success",
+                SUCCESS,
                 "User login successfully!",
                 user,
                 LocalDateTime.now()
