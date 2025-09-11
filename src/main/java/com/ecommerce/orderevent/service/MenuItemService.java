@@ -46,11 +46,13 @@ public class MenuItemService {
         return menuItemRepository.save(menuItem);
     }
 
-    public Optional<MenuItem> findMenuItem(Long menuId){
-        return menuItemRepository.findById(menuId);
+    public MenuItem findMenuItem(Long menuId) {
+        return menuItemRepository.findById(menuId)
+                .orElseThrow(() -> new ResourceNotFoundException(MENU_ITEM_NOT_FOUND + menuId));
     }
 
     public void deleteMenuItem(Long id){
+        if(!menuItemRepository.existsById(id)) throw new ResourceNotFoundException(MENU_ITEM_NOT_FOUND + id);
         menuItemRepository.deleteById(id);
     }
 }

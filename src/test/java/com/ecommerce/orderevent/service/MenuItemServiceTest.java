@@ -116,23 +116,35 @@ class MenuItemServiceTest {
     @Test
     void testFindMenuItem_Success() {
         when(menuItemRepository.findById(10L)).thenReturn(Optional.of(menuItem));
-        Optional<MenuItem> result = menuItemService.findMenuItem(10L);
-        assertTrue(result.isPresent());
-        assertEquals("Pizza", result.get().getName());
+        MenuItem result = menuItemService.findMenuItem(10L);
+        assertNotNull(result);
+        assertEquals("Pizza", result.getName());
     }
 
     @Test
     void testFindMenuItem_NotFound() {
         when(menuItemRepository.findById(99L)).thenReturn(Optional.empty());
-        Optional<MenuItem> result = menuItemService.findMenuItem(99L);
-        assertFalse(result.isPresent());
+        assertThrows(ResourceNotFoundException.class,
+                () -> menuItemService.findMenuItem(99L));
     }
 
     @Test
     void testDeleteMenuItem() {
         Long menuItemId = 10L;
+        when(menuItemRepository.existsById(menuItemId)).thenReturn(true);
         doNothing().when(menuItemRepository).deleteById(menuItemId);
         menuItemService.deleteMenuItem(menuItemId);
+        verify(menuItemRepository, times(1)).existsById(menuItemId);
         verify(menuItemRepository, times(1)).deleteById(menuItemId);
+    }
+
+    @Test
+    void testDeleteMenuItem_NotFound() {
+        Long menuItemId = 99L;
+        when(menuItemRepository.existsById(menuItemId)).thenReturn(false);
+        assertThrows(ResourceNotFoundException.class,
+                () -> menuItemService.deleteMenuItem(menuItemId));
+        verify(menuItemRepository, times(1)).existsById(menuItemId);
+        verify(menuItemRepository, never()).deleteById(menuItemId);
     }
 }
