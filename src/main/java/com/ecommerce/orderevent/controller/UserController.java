@@ -38,7 +38,7 @@ public class UserController {
             User user = userService.getByEmail(email);
         ApiResponse<User> response = new ApiResponse<>(
                 SUCCESS,
-                "Users fetched successfully!",
+                "User fetched successfully!",
                 user,
                 LocalDateTime.now()
         );
@@ -50,7 +50,7 @@ public class UserController {
         User user = userService.updateUser(id, updatedUser);
         ApiResponse<User> response = new ApiResponse<>(
                 SUCCESS,
-                "Users update successfully!",
+                "User update successfully!",
                 user,
                 LocalDateTime.now()
         );
@@ -62,7 +62,7 @@ public class UserController {
         List<Order> orders = userService.getUserOrders(id);
         ApiResponse<List<Order>> response = new ApiResponse<>(
                 SUCCESS,
-                "Orders fetched successfully!",
+                "Order fetched successfully!",
                 orders,
                 LocalDateTime.now()
         );
