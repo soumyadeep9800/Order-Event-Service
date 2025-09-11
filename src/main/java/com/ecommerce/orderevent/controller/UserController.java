@@ -7,7 +7,7 @@ import com.ecommerce.orderevent.service.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import static com.ecommerce.orderevent.constants.SuccessMessages.SUCCESS;
+import static com.ecommerce.orderevent.constants.ApiResponseStatus.SUCCESS;
 import java.time.LocalDateTime;
 import java.util.*;
 

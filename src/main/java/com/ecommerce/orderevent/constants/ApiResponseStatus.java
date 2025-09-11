@@ -1,7 +1,7 @@
 package com.ecommerce.orderevent.constants;
 
-public class SuccessMessages {
-    private SuccessMessages(){}
+public class ApiResponseStatus {
+    private ApiResponseStatus(){}
 
     public static final String SUCCESS = "success";
 }
