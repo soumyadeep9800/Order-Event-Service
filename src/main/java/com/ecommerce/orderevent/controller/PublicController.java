@@ -47,7 +47,8 @@ public class PublicController {
         ApiResponse<User> response = new ApiResponse<>(
                 "success",
                 "User login successfully!",
-                user, LocalDateTime.now()
+                user,
+                LocalDateTime.now()
         );
         return ResponseEntity.ok(response);     // 200
     }
