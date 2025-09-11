@@ -1,11 +1,14 @@
 package com.ecommerce.orderevent.controller;
 
+import com.ecommerce.orderevent.dto.ApiResponse;
 import com.ecommerce.orderevent.entity.Order;
 import com.ecommerce.orderevent.entity.User;
 import com.ecommerce.orderevent.service.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import static com.ecommerce.orderevent.constants.SuccessMessages.SUCCESS;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @RestController
@@ -19,30 +22,56 @@ public class UserController {
     }
 
     @GetMapping
-    public ResponseEntity<List<User>> getAllUsers() {
-        return ResponseEntity.ok(userService.getAllUser());
+    public ResponseEntity<ApiResponse<List<User>>> getAllUsers() {
+        List<User> allUser = userService.getAllUser();
+        ApiResponse<List<User>> response = new ApiResponse<>(
+                SUCCESS,
+                "Users fetched successfully!",
+                allUser,
+                LocalDateTime.now()
+        );
+        return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/{email}")
-    public ResponseEntity<User> getUserByEmail(@PathVariable String email) {
+    @GetMapping("/by-email/{email}")
+    public ResponseEntity<ApiResponse<User>> getUserByEmail(@PathVariable String email) {
             User user = userService.getByEmail(email);
-            return ResponseEntity.ok(user);
+        ApiResponse<User> response = new ApiResponse<>(
+                SUCCESS,
+                "Users fetched successfully!",
+                user,
+                LocalDateTime.now()
+        );
+            return ResponseEntity.ok(response);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User updatedUser) {
+    public ResponseEntity<ApiResponse<User>> updateUser(@PathVariable Long id, @RequestBody User updatedUser) {
         User user = userService.updateUser(id, updatedUser);
-        return ResponseEntity.ok(user);
+        ApiResponse<User> response = new ApiResponse<>(
+                SUCCESS,
+                "Users update successfully!",
+                user,
+                LocalDateTime.now()
+        );
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{id}/orders")
-    public ResponseEntity<List<Order>> getUserOrders(@PathVariable Long id) {
-        return ResponseEntity.ok(userService.getUserOrders(id));
+    public ResponseEntity<ApiResponse<List<Order>>> getUserOrders(@PathVariable Long id) {
+        List<Order> orders = userService.getUserOrders(id);
+        ApiResponse<List<Order>> response = new ApiResponse<>(
+                SUCCESS,
+                "Orders fetched successfully!",
+                orders,
+                LocalDateTime.now()
+        );
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteUser(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         userService.deleteById(id);
-        return ResponseEntity.ok("User deleted ✅");
+        return ResponseEntity.noContent().build();
     }
 }
