@@ -2,6 +2,8 @@ package com.ecommerce.orderevent.controller;
 
 import com.ecommerce.orderevent.dtos.ApiResponse;
 import static com.ecommerce.orderevent.constants.ApiResponseStatus.SUCCESS;
+import com.ecommerce.orderevent.dtos.UserRequestDto;
+import com.ecommerce.orderevent.dtos.UserResponseDto;
 import com.ecommerce.orderevent.entity.User;
 import com.ecommerce.orderevent.service.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -26,29 +28,29 @@ public class PublicController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<User>> registerUser(@RequestBody User user) {
-            User savedUser = userService.saveUser(user); // throws ResourceNotFoundException if not found
-            ApiResponse<User> response = new ApiResponse<>(
+    public ResponseEntity<ApiResponse<UserResponseDto>> registerUser(@RequestBody UserRequestDto requestDto) {
+            User savedUser = userService.saveUser(requestDto); // throws ResourceNotFoundException if not found
+
+            UserResponseDto responseDto = new UserResponseDto(savedUser.getId(), savedUser.getName(), savedUser.getEmail());
+            ApiResponse<UserResponseDto> response = new ApiResponse<>(
                     SUCCESS,
                     "User saved successfully!",
-                    savedUser,
+                    responseDto,
                     LocalDateTime.now()
             );
             return ResponseEntity.status(HttpStatus.CREATED).body(response); // 201 Created
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<User>> login(@RequestBody Map<String,String> loginRequest){
-        String email = loginRequest.get("email");
-        String password = loginRequest.get("password");
+    public ResponseEntity<ApiResponse<UserResponseDto>> login(@RequestBody UserRequestDto requestDto){
+        User user = userService.getByEmail(requestDto.getEmail()); // throws ResourceNotFoundException if not found
+        if (!user.getPassword().equals(requestDto.getPassword())) throw new IllegalArgumentException("Invalid password!");
 
-        User user = userService.getByEmail(email); // throws ResourceNotFoundException if not found
-        if (!user.getPassword().equals(password)) throw new IllegalArgumentException("Invalid password!");
-
-        ApiResponse<User> response = new ApiResponse<>(
+        UserResponseDto responseDto = new UserResponseDto(user.getId(), user.getName(), user.getEmail());
+        ApiResponse<UserResponseDto> response = new ApiResponse<>(
                 SUCCESS,
                 "User login successfully!",
-                user,
+                responseDto,
                 LocalDateTime.now()
         );
         return ResponseEntity.ok(response);     // 200

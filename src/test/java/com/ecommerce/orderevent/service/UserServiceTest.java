@@ -1,15 +1,16 @@
 package com.ecommerce.orderevent.service;
 
+import com.ecommerce.orderevent.dtos.UserRequestDto;
 import com.ecommerce.orderevent.entity.Order;
 import com.ecommerce.orderevent.entity.User;
 import com.ecommerce.orderevent.exception.ResourceNotFoundException;
 import com.ecommerce.orderevent.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import static com.ecommerce.orderevent.constants.ErrorMessages.*;
 import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -25,27 +26,41 @@ class UserServiceTest {
 
     @Test
     void testSaveUser_Success() {
-        User user = new User();
-        user.setId(1L);
-        user.setEmail("test@example.com");
+        UserRequestDto requestDto = new UserRequestDto();
+        requestDto.setName("Test User");
+        requestDto.setEmail("test@example.com");
+        requestDto.setPassword("password123");
 
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.empty());
-        userService.saveUser(user);
-        verify(userRepository, times(1)).save(user);
+        userService.saveUser(requestDto);
+
+        ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
+        verify(userRepository, times(1)).save(userCaptor.capture());
+        User savedUser = userCaptor.getValue();
+        assertEquals("Test User", savedUser.getName());
+        assertEquals("test@example.com", savedUser.getEmail());
+        assertEquals("password123", savedUser.getPassword());
     }
 
     @Test
     void testSaveUser_AlreadyExists(){
-        User user = new User();
-        user.setId(1L);
-        user.setEmail("test@example.com");
+        UserRequestDto requestDto = new UserRequestDto();
+        requestDto.setName("Test User");
+        requestDto.setEmail("test@example.com");
+        requestDto.setPassword("password123");
 
-        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
+        User existingUser = new User();
+        existingUser.setId(1L);
+        existingUser.setName("Existing User");
+        existingUser.setEmail("test@example.com");
+        existingUser.setPassword("password123");
+
+        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(existingUser));
         Exception exception = assertThrows(IllegalArgumentException.class, () ->{
-            userService.saveUser(user);
+            userService.saveUser(requestDto);
         });
         assertEquals("User already exists with this email!", exception.getMessage());
-        verify(userRepository, never()).save(user);
+        verify(userRepository, never()).save(any(User.class));
     }
 
     @Test

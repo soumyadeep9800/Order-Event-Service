@@ -1,5 +1,6 @@
 package com.ecommerce.orderevent.service;
 
+import com.ecommerce.orderevent.dtos.UserRequestDto;
 import com.ecommerce.orderevent.entity.Order;
 import com.ecommerce.orderevent.entity.User;
 import com.ecommerce.orderevent.exception.ResourceNotFoundException;
@@ -18,10 +19,16 @@ public class UserService {
         this.userRepository=userRepository;
     }
 
-    public User saveUser(User user){
-        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+    public User saveUser(UserRequestDto requestDto){
+        if (userRepository.findByEmail(requestDto.getEmail()).isPresent()) {
             throw new IllegalArgumentException("User already exists with this email!");
         }
+
+        User user = new User();
+        user.setName(requestDto.getName());
+        user.setEmail(requestDto.getEmail());
+        user.setPassword(requestDto.getPassword());
+
         return userRepository.save(user);
     }
 
