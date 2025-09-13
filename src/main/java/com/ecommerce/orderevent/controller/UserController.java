@@ -1,6 +1,8 @@
 package com.ecommerce.orderevent.controller;
 
 import com.ecommerce.orderevent.dtos.ApiResponse;
+import com.ecommerce.orderevent.dtos.UserRequestDto;
+import com.ecommerce.orderevent.dtos.UserResponseDto;
 import com.ecommerce.orderevent.entity.Order;
 import com.ecommerce.orderevent.entity.User;
 import com.ecommerce.orderevent.service.UserService;
@@ -47,9 +49,9 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<User>> updateUser(@PathVariable Long id, @RequestBody User updatedUser) {
-        User user = userService.updateUser(id, updatedUser);
-        ApiResponse<User> response = new ApiResponse<>(
+    public ResponseEntity<ApiResponse<UserResponseDto>> updateUser(@PathVariable Long id, @RequestBody UserRequestDto requestDto) {
+        UserResponseDto user = userService.updateUser(id, requestDto);
+        ApiResponse<UserResponseDto> response = new ApiResponse<>(
                 SUCCESS,
                 "User update successfully!",
                 user,

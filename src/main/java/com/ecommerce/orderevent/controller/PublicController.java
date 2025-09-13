@@ -29,30 +29,28 @@ public class PublicController {
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<UserResponseDto>> registerUser(@RequestBody UserRequestDto requestDto) {
-            User savedUser = userService.saveUser(requestDto); // throws ResourceNotFoundException if not found
-
-            UserResponseDto responseDto = new UserResponseDto(savedUser.getId(), savedUser.getName(), savedUser.getEmail());
+        UserResponseDto savedUser = userService.saveUser(requestDto); // throws ResourceNotFoundException if not found
             ApiResponse<UserResponseDto> response = new ApiResponse<>(
                     SUCCESS,
                     "User saved successfully!",
-                    responseDto,
+                    savedUser,
                     LocalDateTime.now()
             );
             return ResponseEntity.status(HttpStatus.CREATED).body(response); // 201 Created
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<UserResponseDto>> login(@RequestBody UserRequestDto requestDto){
-        User user = userService.getByEmail(requestDto.getEmail()); // throws ResourceNotFoundException if not found
+    public ResponseEntity<ApiResponse<UserResponseDto>> login(@RequestBody UserRequestDto requestDto) {
+        User user = userService.getByEmail(requestDto.getEmail());
         if (!user.getPassword().equals(requestDto.getPassword())) throw new IllegalArgumentException("Invalid password!");
 
-        UserResponseDto responseDto = new UserResponseDto(user.getId(), user.getName(), user.getEmail());
+        UserResponseDto responseDto = UserResponseDto.fromEntity(user);
         ApiResponse<UserResponseDto> response = new ApiResponse<>(
                 SUCCESS,
                 "User login successfully!",
                 responseDto,
                 LocalDateTime.now()
         );
-        return ResponseEntity.ok(response);     // 200
+        return ResponseEntity.ok(response); //200
     }
 }

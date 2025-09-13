@@ -1,6 +1,7 @@
 package com.ecommerce.orderevent.service;
 
 import com.ecommerce.orderevent.dtos.UserRequestDto;
+import com.ecommerce.orderevent.dtos.UserResponseDto;
 import com.ecommerce.orderevent.entity.Order;
 import com.ecommerce.orderevent.entity.User;
 import com.ecommerce.orderevent.exception.ResourceNotFoundException;
@@ -19,7 +20,7 @@ public class UserService {
         this.userRepository=userRepository;
     }
 
-    public User saveUser(UserRequestDto requestDto){
+    public UserResponseDto saveUser(UserRequestDto requestDto){
         if (userRepository.findByEmail(requestDto.getEmail()).isPresent()) {
             throw new IllegalArgumentException("User already exists with this email!");
         }
@@ -28,19 +29,21 @@ public class UserService {
         user.setName(requestDto.getName());
         user.setEmail(requestDto.getEmail());
         user.setPassword(requestDto.getPassword());
+        User saveUser = userRepository.save(user);
 
-        return userRepository.save(user);
+        return UserResponseDto.fromEntity(saveUser);
     }
 
-    public User updateUser(Long id, User updatedUser) {
+    public UserResponseDto updateUser(Long id, UserRequestDto updatedUserDto) {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException( USER_NOT_FOUND + id));
 
-        existingUser.setName(updatedUser.getName());
-        existingUser.setEmail(updatedUser.getEmail());
-        existingUser.setPassword(updatedUser.getPassword());
+        existingUser.setName(updatedUserDto.getName());
+        existingUser.setEmail(updatedUserDto.getEmail());
+        existingUser.setPassword(updatedUserDto.getPassword());
 
-        return userRepository.save(existingUser);
+        User savedUser = userRepository.save(existingUser);
+        return UserResponseDto.fromEntity(savedUser);
     }
 
     public List<User> getAllUser(){
@@ -51,6 +54,7 @@ public class UserService {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND + email));
     }
+
 
     public List<Order> getUserOrders(Long userId) {
         User user = userRepository.findById(userId)

@@ -1,6 +1,7 @@
 package com.ecommerce.orderevent.service;
 
 import com.ecommerce.orderevent.dtos.UserRequestDto;
+import com.ecommerce.orderevent.dtos.UserResponseDto;
 import com.ecommerce.orderevent.entity.Order;
 import com.ecommerce.orderevent.entity.User;
 import com.ecommerce.orderevent.exception.ResourceNotFoundException;
@@ -30,17 +31,23 @@ class UserServiceTest {
         requestDto.setName("Test User");
         requestDto.setEmail("test@example.com");
         requestDto.setPassword("password123");
-
+        // Simulate DB: no existing user
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.empty());
-        userService.saveUser(requestDto);
+        // Mock repository save() to return a user with ID
+        User savedUserMock = new User();
+        savedUserMock.setId(1L);
+        savedUserMock.setName("Test User");
+        savedUserMock.setEmail("test@example.com");
+        savedUserMock.setPassword("password123");
 
-        ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);//create capture
-        verify(userRepository, times(1)).save(userCaptor.capture());//check call 1 and grap the capture
-        User savedUser = userCaptor.getValue();// extract the grap data then evaluate
-        assertEquals("Test User", savedUser.getName());
-        assertEquals("test@example.com", savedUser.getEmail());
-        assertEquals("password123", savedUser.getPassword());
+        when(userRepository.save(any(User.class))).thenReturn(savedUserMock);
+        UserResponseDto result = userService.saveUser(requestDto);
+        assertNotNull(result);
+        assertEquals("Test User", result.getName());
+        assertEquals("test@example.com", result.getEmail());
+        assertEquals(1L, result.getId());
     }
+
 
     @Test
     void testSaveUser_AlreadyExists(){
@@ -65,33 +72,31 @@ class UserServiceTest {
 
     @Test
     void testUpdateUser_Success() {
+        UserRequestDto requestDto = new UserRequestDto();
+        requestDto.setName("Test User");
+        requestDto.setEmail("test@example.com");
+        requestDto.setPassword("password123");
         // Existing user in DB
         User existingUser = new User();
         existingUser.setId(1L);
         existingUser.setName("Old Name");
         existingUser.setEmail("old@example.com");
         existingUser.setPassword("oldPass");
-        // Updated user request
-        User updatedUser = new User();
-        updatedUser.setName("New Name");
-        updatedUser.setEmail("new@example.com");
-        updatedUser.setPassword("newPass");
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
         when(userRepository.save(existingUser)).thenReturn(existingUser);
-        User result = userService.updateUser(1L, updatedUser);
+        UserResponseDto result = userService.updateUser(1L, requestDto);
 
         assertNotNull(result);
-        assertEquals("New Name", result.getName());
-        assertEquals("new@example.com", result.getEmail());
-        assertEquals("newPass", result.getPassword());
+        assertEquals("Test User", result.getName());
+        assertEquals("test@example.com", result.getEmail());
         verify(userRepository, times(1)).findById(1L);
         verify(userRepository, times(1)).save(existingUser);
     }
 
     @Test
     void testUpdateUser_NotFound() {
-        User updatedUser = new User();
+        UserRequestDto updatedUser = new UserRequestDto();
         updatedUser.setName("New Name");
         updatedUser.setEmail("new@example.com");
         updatedUser.setPassword("newPass");

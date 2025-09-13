@@ -1,5 +1,6 @@
 package com.ecommerce.orderevent.dtos;
 
+import com.ecommerce.orderevent.entity.User;
 import lombok.Data;
 
 @Data
@@ -12,5 +13,9 @@ public class UserResponseDto {
         this.id = id;
         this.name = name;
         this.email = email;
+    }
+
+    public static UserResponseDto fromEntity(User user) {
+        return new UserResponseDto(user.getId(), user.getName(), user.getEmail());
     }
 }
