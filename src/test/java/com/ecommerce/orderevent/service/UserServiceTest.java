@@ -34,9 +34,9 @@ class UserServiceTest {
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.empty());
         userService.saveUser(requestDto);
 
-        ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
-        verify(userRepository, times(1)).save(userCaptor.capture());
-        User savedUser = userCaptor.getValue();
+        ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);//create capture
+        verify(userRepository, times(1)).save(userCaptor.capture());//check call 1 and grap the capture
+        User savedUser = userCaptor.getValue();// extract the grap data then evaluate
         assertEquals("Test User", savedUser.getName());
         assertEquals("test@example.com", savedUser.getEmail());
         assertEquals("password123", savedUser.getPassword());
