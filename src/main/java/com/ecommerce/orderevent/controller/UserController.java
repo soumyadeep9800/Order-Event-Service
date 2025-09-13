@@ -38,14 +38,14 @@ public class UserController {
 
     @GetMapping("/by-email/{email}")
     public ResponseEntity<ApiResponse<User>> getUserByEmail(@PathVariable String email) {
-            User user = userService.getByEmail(email);
+        User user = userService.getByEmail(email);
         ApiResponse<User> response = new ApiResponse<>(
                 SUCCESS,
                 "User fetched successfully!",
                 user,
                 LocalDateTime.now()
         );
-            return ResponseEntity.ok(response);
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/{id}")
