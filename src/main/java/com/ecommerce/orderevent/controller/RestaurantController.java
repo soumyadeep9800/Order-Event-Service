@@ -2,6 +2,9 @@ package com.ecommerce.orderevent.controller;
 
 import com.ecommerce.orderevent.dtos.ApiResponse;
 import static com.ecommerce.orderevent.constants.ApiResponseStatus.SUCCESS;
+
+import com.ecommerce.orderevent.dtos.RestaurantRequestDto;
+import com.ecommerce.orderevent.dtos.RestaurantResponseDto;
 import com.ecommerce.orderevent.entity.MenuItem;
 import com.ecommerce.orderevent.entity.Restaurant;
 import com.ecommerce.orderevent.service.MenuItemService;
@@ -26,15 +29,27 @@ public class RestaurantController {
     }
 
     @PostMapping     //@Operation(summary = "Fetch restaurant by ID", description = "Get details of a specific restaurant")
-    public ResponseEntity<ApiResponse<Restaurant>> addNewRestaurant(@RequestBody Restaurant restaurant){
-        Restaurant saveRestaurant = restaurantService.addRestaurant(restaurant);
-        ApiResponse<Restaurant> response = new ApiResponse<>(
+    public ResponseEntity<ApiResponse<RestaurantResponseDto>> addNewRestaurant(@RequestBody RestaurantRequestDto restaurantRequestDto){
+        RestaurantResponseDto saveRestaurant = restaurantService.addRestaurant(restaurantRequestDto);
+        ApiResponse<RestaurantResponseDto> response = new ApiResponse<>(
                 SUCCESS,
                 "Restaurant added successfully!",
                 saveRestaurant,
                 LocalDateTime.now()
         );
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<RestaurantResponseDto>> updateRestaurant(@PathVariable Long id, @RequestBody RestaurantRequestDto restaurantRequestDto){
+        RestaurantResponseDto restaurant = restaurantService.updateRestaurant(id, restaurantRequestDto);
+        ApiResponse<RestaurantResponseDto> response = new ApiResponse<>(
+                SUCCESS,
+                "Update restaurant successfully!",
+                restaurant,
+                LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
     }
 
     @GetMapping
@@ -71,18 +86,6 @@ public class RestaurantController {
                 LocalDateTime.now()
         );
         return ResponseEntity.ok(response);
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<Restaurant>> updateRestaurant(@PathVariable Long id, @RequestBody Restaurant updateRestaurant){
-        Restaurant restaurant = restaurantService.updateRestaurant(id, updateRestaurant);
-        ApiResponse<Restaurant> response = new ApiResponse<>(
-                SUCCESS,
-        "Update restaurant successfully!",
-                restaurant,
-                LocalDateTime.now()
-        );
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
     }
 
     @DeleteMapping("/{id}")

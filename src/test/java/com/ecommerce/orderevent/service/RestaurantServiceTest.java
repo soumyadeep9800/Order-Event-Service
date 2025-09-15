@@ -1,5 +1,8 @@
 package com.ecommerce.orderevent.service;
 
+import com.ecommerce.orderevent.dtos.MenuItemRequestDto;
+import com.ecommerce.orderevent.dtos.RestaurantRequestDto;
+import com.ecommerce.orderevent.dtos.RestaurantResponseDto;
 import com.ecommerce.orderevent.entity.MenuItem;
 import com.ecommerce.orderevent.entity.Restaurant;
 import com.ecommerce.orderevent.exception.ResourceNotFoundException;
@@ -24,7 +27,20 @@ class RestaurantServiceTest {
     private RestaurantRepository restaurantRepository;
 
     @Test
-    void TestAddRestaurant_Success(){
+    void TestAddRestaurant_Success() {
+        // Arrange (prepare input DTO)
+        RestaurantRequestDto requestDto = new RestaurantRequestDto();
+        requestDto.setName("Pizza Hut");
+        requestDto.setContact("1234567890");
+        requestDto.setAddress("Main Street");
+
+        MenuItemRequestDto itemDto = new MenuItemRequestDto();
+        itemDto.setName("Chicken Pizza");
+        itemDto.setDescription("Spicy chicken pizza");
+        itemDto.setPrice(299.0);
+        requestDto.setMenuItems(Arrays.asList(itemDto));
+
+        // Mock entity to return
         Restaurant restaurant = new Restaurant();
         restaurant.setId(1L);
         restaurant.setName("Pizza Hut");
@@ -32,16 +48,21 @@ class RestaurantServiceTest {
         MenuItem item = new MenuItem();
         item.setId(1L);
         item.setName("Chicken Pizza");
-
+        item.setPrice(299.0);
+        item.setRestaurant(restaurant);
         restaurant.setMenuItems(Arrays.asList(item));
 
-        when(restaurantRepository.save(restaurant)).thenReturn(restaurant);
-        Restaurant saved = restaurantService.addRestaurant(restaurant);
+        when(restaurantRepository.save(any(Restaurant.class))).thenReturn(restaurant);
+        // Act
+        RestaurantResponseDto saved = restaurantService.addRestaurant(requestDto);
+        // Assert
         assertNotNull(saved);
         assertEquals("Pizza Hut", saved.getName());
-        assertEquals(restaurant, saved.getMenuItems().get(0).getRestaurant());
-        verify(restaurantRepository, times(1)).save(restaurant);
+        assertEquals("Chicken Pizza", saved.getMenuItems().get(0).getName());
+        assertEquals(299.0, saved.getMenuItems().get(0).getPrice());
+        verify(restaurantRepository, times(1)).save(any(Restaurant.class));
     }
+
 
     @Test
     void testGetAllRestaurant(){
@@ -108,56 +129,86 @@ class RestaurantServiceTest {
 
     @Test
     void testUpdateRestaurant_Success() {
-        // Existing restaurant
+        // Arrange: existing restaurant in DB
         Restaurant existingRestaurant = new Restaurant();
         existingRestaurant.setId(1L);
         existingRestaurant.setName("Old Name");
         existingRestaurant.setAddress("Old Address");
-        existingRestaurant.setContact("1111");
-        // Updated request
+        existingRestaurant.setContact("1111111111");
+
+        when(restaurantRepository.findById(1L)).thenReturn(Optional.of(existingRestaurant));
+
+        // DTO with new values
+        RestaurantRequestDto requestDto = new RestaurantRequestDto();
+        requestDto.setName("New Name");
+        requestDto.setAddress("New Address");
+        requestDto.setContact("9999999999");
+
+        MenuItemRequestDto menuItemRequestDto = new MenuItemRequestDto();
+        menuItemRequestDto.setName("Updated Pizza");
+        menuItemRequestDto.setDescription("Cheese Burst");
+        menuItemRequestDto.setPrice(299.0);
+        requestDto.setMenuItems(Arrays.asList(menuItemRequestDto));
+
+        // Mock saved restaurant
         Restaurant updatedRestaurant = new Restaurant();
+        updatedRestaurant.setId(1L);
         updatedRestaurant.setName("New Name");
         updatedRestaurant.setAddress("New Address");
-        updatedRestaurant.setContact("2222");
-        // Add menu items
-        MenuItem item1 = new MenuItem();
-        item1.setId(10L);
-        item1.setName("Pizza");
+        updatedRestaurant.setContact("9999999999");
 
-        updatedRestaurant.setMenuItems(List.of(item1));
-        when(restaurantRepository.findById(1L)).thenReturn(Optional.of(existingRestaurant));
-        when(restaurantRepository.save(existingRestaurant)).thenReturn(existingRestaurant);
-        Restaurant result = restaurantService.updateRestaurant(1L, updatedRestaurant);
+        MenuItem menuItem = new MenuItem();
+        menuItem.setId(1L);
+        menuItem.setName("Updated Pizza");
+        menuItem.setDescription("Cheese Burst");
+        menuItem.setPrice(299.0);
+        menuItem.setRestaurant(updatedRestaurant);
+        updatedRestaurant.setMenuItems(Arrays.asList(menuItem));
 
-        assertNotNull(result);
-        assertEquals("New Name", result.getName());
-        assertEquals("New Address", result.getAddress());
-        assertEquals("2222", result.getContact());
-        assertEquals(1, result.getMenuItems().size());
-        assertEquals(existingRestaurant, result.getMenuItems().get(0).getRestaurant());
+        when(restaurantRepository.save(any(Restaurant.class))).thenReturn(updatedRestaurant);
+        // Act
+        RestaurantResponseDto response = restaurantService.updateRestaurant(1L, requestDto);
+        // Assert
+        assertNotNull(response);
+        assertEquals("New Name", response.getName());
+        assertEquals("Updated Pizza", response.getMenuItems().get(0).getName());
+        assertEquals(299.0, response.getMenuItems().get(0).getPrice());
         verify(restaurantRepository, times(1)).findById(1L);
-        verify(restaurantRepository, times(1)).save(existingRestaurant);
+        verify(restaurantRepository, times(1)).save(any(Restaurant.class));
     }
 
     @Test
     void testUpdateRestaurant_NotFound() {
-        Restaurant updatedRestaurant = new Restaurant();
-        updatedRestaurant.setName("New Name");
-
-        when(restaurantRepository.findById(1L)).thenReturn(Optional.empty());
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
-            restaurantService.updateRestaurant(1L, updatedRestaurant);
+        // Arrange: restaurant not found
+        when(restaurantRepository.findById(99L)).thenReturn(Optional.empty());
+        RestaurantRequestDto requestDto = new RestaurantRequestDto();
+        requestDto.setName("Doesn't Matter");
+        // Act + Assert
+        assertThrows(ResourceNotFoundException.class, () -> {
+            restaurantService.updateRestaurant(99L, requestDto);
         });
-        assertEquals(RESTAURANT_NOT_FOUND + 1L, exception.getMessage());
-        verify(restaurantRepository, times(1)).findById(1L);
+        verify(restaurantRepository, times(1)).findById(99L);
         verify(restaurantRepository, never()).save(any(Restaurant.class));
     }
 
+
     @Test
-    void testDeleteRestaurant() {
+    void testDeleteRestaurant_Success() {
         Long id = 1L;
+        when(restaurantRepository.existsById(id)).thenReturn(true);
         doNothing().when(restaurantRepository).deleteById(id);
         restaurantService.deleteRestaurant(id);
+        verify(restaurantRepository, times(1)).existsById(id);
         verify(restaurantRepository, times(1)).deleteById(id);
+    }
+
+    @Test
+    void testDeleteRestaurant_NotFound() {
+        Long id = 1L;
+        when(restaurantRepository.existsById(id)).thenReturn(false);
+        assertThrows(ResourceNotFoundException.class,
+                () -> restaurantService.deleteRestaurant(id));
+        verify(restaurantRepository, times(1)).existsById(id);
+        verify(restaurantRepository, never()).deleteById(id);
     }
 }

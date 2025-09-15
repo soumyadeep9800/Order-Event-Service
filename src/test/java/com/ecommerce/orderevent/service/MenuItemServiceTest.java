@@ -129,7 +129,7 @@ class MenuItemServiceTest {
     }
 
     @Test
-    void testDeleteMenuItem() {
+    void testDeleteMenuItem_Success() {
         Long menuItemId = 10L;
         when(menuItemRepository.existsById(menuItemId)).thenReturn(true);
         doNothing().when(menuItemRepository).deleteById(menuItemId);
