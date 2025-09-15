@@ -9,7 +9,7 @@ public class MenuItemResponseDto {
     private String name;
     private String description;
     private Double price;
-    private String restaurantName;
+    private RestaurantResponseDto restaurant;
 
     public static MenuItemResponseDto fromEntity(MenuItem menuItem) {
         MenuItemResponseDto dto = new MenuItemResponseDto();
@@ -17,9 +17,14 @@ public class MenuItemResponseDto {
         dto.setName(menuItem.getName());
         dto.setDescription(menuItem.getDescription());
         dto.setPrice(menuItem.getPrice());
-        if (menuItem.getRestaurant() != null) {
-            dto.setRestaurantName(menuItem.getRestaurant().getName());
-        }
+
+        RestaurantResponseDto restaurantDto = new RestaurantResponseDto();
+        restaurantDto.setId(menuItem.getRestaurant().getId());
+        restaurantDto.setName(menuItem.getRestaurant().getName());
+        restaurantDto.setAddress(menuItem.getRestaurant().getAddress());
+        restaurantDto.setContact(menuItem.getRestaurant().getContact());
+        dto.setRestaurant(restaurantDto);
+
         return dto;
     }
 }

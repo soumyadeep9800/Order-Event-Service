@@ -2,6 +2,8 @@ package com.ecommerce.orderevent.controller;
 
 import com.ecommerce.orderevent.dtos.ApiResponse;
 import static com.ecommerce.orderevent.constants.ApiResponseStatus.SUCCESS;
+import com.ecommerce.orderevent.dtos.MenuItemRequestDto;
+import com.ecommerce.orderevent.dtos.MenuItemResponseDto;
 import com.ecommerce.orderevent.entity.MenuItem;
 import com.ecommerce.orderevent.service.MenuItemService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -21,16 +23,28 @@ public class MenuItemController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<MenuItem>> addMenuItem(@RequestBody MenuItem menuItem){
-        Long id = menuItem.getRestaurant().getId();
-        MenuItem getMenuitem = menuItemService.addMenuItem(id,menuItem);
-        ApiResponse<MenuItem> response = new ApiResponse<>(
+    public ResponseEntity<ApiResponse<MenuItemResponseDto>> addMenuItem(@RequestBody MenuItemRequestDto menuItemRequestDto){
+        Long id = menuItemRequestDto.getRestaurantId();
+        MenuItemResponseDto getMenuitem = menuItemService.addMenuItem(id,menuItemRequestDto);
+        ApiResponse<MenuItemResponseDto> response = new ApiResponse<>(
                 SUCCESS,
                 "Menu-item saved successfully!",
                 getMenuitem,
                 LocalDateTime.now()
         );
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<MenuItemResponseDto>> updateMenuItem(@PathVariable Long id, @RequestBody MenuItemRequestDto menuItemRequestDto){
+        MenuItemResponseDto updatedMenu = menuItemService.updateMenuItem(id, menuItemRequestDto);
+        ApiResponse<MenuItemResponseDto> response = new ApiResponse<>(
+                SUCCESS,
+                "Menu-item updated successfully!",
+                updatedMenu,
+                LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
     }
 
     @GetMapping("/menu-items/{id}")
@@ -43,18 +57,6 @@ public class MenuItemController {
                 LocalDateTime.now()
         );
         return ResponseEntity.ok(response);
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<MenuItem>> updateMenuItem(@PathVariable Long id, @RequestBody MenuItem menuItem){
-        MenuItem updatedMenu = menuItemService.updateMenuItem(id, menuItem);
-        ApiResponse<MenuItem> response = new ApiResponse<>(
-                SUCCESS,
-                "Menu-item updated successfully!",
-                updatedMenu,
-                LocalDateTime.now()
-        );
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
     }
 
     @DeleteMapping("/{id}")

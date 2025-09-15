@@ -1,5 +1,7 @@
 package com.ecommerce.orderevent.service;
 
+import com.ecommerce.orderevent.dtos.MenuItemRequestDto;
+import com.ecommerce.orderevent.dtos.MenuItemResponseDto;
 import com.ecommerce.orderevent.entity.MenuItem;
 import com.ecommerce.orderevent.entity.Restaurant;
 import com.ecommerce.orderevent.exception.ResourceNotFoundException;
@@ -8,6 +10,7 @@ import com.ecommerce.orderevent.repository.RestaurantRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -44,23 +47,39 @@ class MenuItemServiceTest {
 
     @Test
     void testAddMenuItem_Success(){
-        when(restaurantRepository.findById(1L)).thenReturn(Optional.of(restaurant));
-        when(menuItemRepository.save(menuItem)).thenReturn(menuItem);
+        MenuItemRequestDto requestDto = new MenuItemRequestDto();
+        requestDto.setName("Pizza");
+        requestDto.setPrice(12.5);
+        requestDto.setRestaurantId(1L);
 
-        MenuItem result = menuItemService.addMenuItem(1L, menuItem);
+        when(restaurantRepository.findById(1L)).thenReturn(Optional.of(restaurant));
+        when(menuItemRepository.save(any(MenuItem.class))).thenReturn(menuItem);
+
+        MenuItemResponseDto result = menuItemService.addMenuItem(1L, requestDto);
 
         assertNotNull(result);
         assertEquals("Pizza", result.getName());
-        assertEquals(restaurant, result.getRestaurant());
-        verify(menuItemRepository, times(1)).save(menuItem);
+        assertEquals("Test Restaurant", result.getRestaurant().getName());
+
+        ArgumentCaptor<MenuItem> captor = ArgumentCaptor.forClass(MenuItem.class);
+        verify(menuItemRepository, times(1)).save(captor.capture());
+
+        MenuItem captured = captor.getValue();
+        assertEquals("Pizza", captured.getName());
+        assertEquals(12.5, captured.getPrice());
+        assertEquals(restaurant, captured.getRestaurant());
     }
 
     @Test
     void testAddMenuItem_RestaurantNotFound() {
-        when(restaurantRepository.findById(1L)).thenReturn(Optional.empty());
+        MenuItemRequestDto requestDto = new MenuItemRequestDto();
+        requestDto.setName("Pizza");
+        requestDto.setPrice(12.5);
+        requestDto.setRestaurantId(1L);
 
+        when(restaurantRepository.findById(1L)).thenReturn(Optional.empty());
         assertThrows(ResourceNotFoundException.class,
-                () -> menuItemService.addMenuItem(1L, menuItem));
+                () -> menuItemService.addMenuItem(1L, requestDto));
         verify(menuItemRepository, never()).save(any(MenuItem.class));
     }
 
@@ -84,32 +103,35 @@ class MenuItemServiceTest {
 
     @Test
     void testUpdateMenuItem_Success() {
-        MenuItem updatedMenuItem = new MenuItem();
-        updatedMenuItem.setName("Burger");
-        updatedMenuItem.setDescription("Cheesy Burger");
-        updatedMenuItem.setPrice(8.5);
-        updatedMenuItem.setRestaurant(restaurant);
+        MenuItemRequestDto requestDto = new MenuItemRequestDto();
+        requestDto.setName("Burger");
+        requestDto.setDescription("Cheesy Burger");
+        requestDto.setPrice(8.5);
+        requestDto.setRestaurantId(1L);
 
         when(menuItemRepository.findById(10L)).thenReturn(Optional.of(menuItem));
-        when(menuItemRepository.save(menuItem)).thenReturn(menuItem);
-        MenuItem result = menuItemService.updateMenuItem(10L, updatedMenuItem);
+        when(restaurantRepository.findById(1L)).thenReturn(Optional.of(restaurant));
+        when(menuItemRepository.save(any(MenuItem.class))).thenReturn(menuItem);
+
+        MenuItemResponseDto result = menuItemService.updateMenuItem(10L, requestDto);
 
         assertNotNull(result);
         assertEquals("Burger", result.getName());
         assertEquals("Cheesy Burger", result.getDescription());
         assertEquals(8.5, result.getPrice());
-        assertEquals(restaurant, result.getRestaurant());
+        assertEquals("Test Restaurant", result.getRestaurant().getName());
         verify(menuItemRepository, times(1)).findById(10L);
-        verify(menuItemRepository, times(1)).save(menuItem);
+        verify(menuItemRepository, times(1)).save(any(MenuItem.class));
     }
 
     @Test
     void testUpdateMenuItem_NotFound() {
-        MenuItem updatedMenuItem = new MenuItem();
-        updatedMenuItem.setName("Burger");
+        MenuItemRequestDto requestDto = new MenuItemRequestDto();
+        requestDto.setName("Burger");
+
         when(menuItemRepository.findById(99L)).thenReturn(Optional.empty());
         assertThrows(ResourceNotFoundException.class,
-                () -> menuItemService.updateMenuItem(99L, updatedMenuItem));
+                () -> menuItemService.updateMenuItem(99L, requestDto));
         verify(menuItemRepository, never()).save(any(MenuItem.class));
     }
 
