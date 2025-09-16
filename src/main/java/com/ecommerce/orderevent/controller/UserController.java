@@ -6,6 +6,7 @@ import com.ecommerce.orderevent.dtos.UserResponseDto;
 import com.ecommerce.orderevent.entity.Order;
 import com.ecommerce.orderevent.entity.User;
 import com.ecommerce.orderevent.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +26,7 @@ public class UserController {
     }
 
     @GetMapping
+    @Operation(summary = "Fetch all users", description = "Retrieve a list of all registered users")
     public ResponseEntity<ApiResponse<List<User>>> getAllUsers() {
         List<User> allUser = userService.getAllUser();
         ApiResponse<List<User>> response = new ApiResponse<>(
@@ -37,6 +39,7 @@ public class UserController {
     }
 
     @GetMapping("/by-email/{email}")
+    @Operation(summary = "Fetch user by email", description = "Retrieve details of a user using their email address")
     public ResponseEntity<ApiResponse<User>> getUserByEmail(@PathVariable String email) {
         User user = userService.getByEmail(email);
         ApiResponse<User> response = new ApiResponse<>(
@@ -49,6 +52,7 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
+    @Operation(summary = "Update user", description = "Update user details by user ID")
     public ResponseEntity<ApiResponse<UserResponseDto>> updateUser(@PathVariable Long id, @RequestBody UserRequestDto requestDto) {
         UserResponseDto user = userService.updateUser(id, requestDto);
         ApiResponse<UserResponseDto> response = new ApiResponse<>(
@@ -61,6 +65,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}/orders")
+    @Operation(summary = "Fetch user orders", description = "Retrieve all orders associated with a specific user by their ID")
     public ResponseEntity<ApiResponse<List<Order>>> getUserOrders(@PathVariable Long id) {
         List<Order> orders = userService.getUserOrders(id);
         ApiResponse<List<Order>> response = new ApiResponse<>(
@@ -73,6 +78,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "Delete user", description = "Delete a user from the system by their ID")
     public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable Long id) {
         userService.deleteById(id);
         ApiResponse<Void> response = new ApiResponse<>(
