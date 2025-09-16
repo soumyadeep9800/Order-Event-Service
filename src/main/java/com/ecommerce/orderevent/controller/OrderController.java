@@ -5,6 +5,7 @@ import com.ecommerce.orderevent.dtos.OrderResponseDto;
 import com.ecommerce.orderevent.dtos.OrderStatusUpdateRequestDto;
 import com.ecommerce.orderevent.entity.Order;
 import com.ecommerce.orderevent.service.OrderService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -26,6 +27,7 @@ public class OrderController {
     }
 
     @PostMapping("/placeOrder")
+    @Operation(summary = "Place new order", description = "Create a new order and save it to the system")
     public ResponseEntity<ApiResponse<OrderResponseDto>> placeOrder(@RequestBody @Valid OrderRequestDto requestDto){
         OrderResponseDto responseDto = orderService.placeOrder(requestDto);
         ApiResponse<OrderResponseDto> response = new ApiResponse<>(
@@ -38,6 +40,7 @@ public class OrderController {
     }
 
     @PutMapping("/{orderId}/status")
+    @Operation(summary = "Update order status", description = "Update the status of an existing order by its ID")
     public ResponseEntity<ApiResponse<OrderResponseDto>> updateOrderStatus(
             @PathVariable Long orderId,
             @RequestBody OrderStatusUpdateRequestDto requestDto) {
@@ -53,6 +56,7 @@ public class OrderController {
     }
 
     @GetMapping("/{orderId}")
+    @Operation(summary = "Fetch order details", description = "Retrieve detailed information of a specific order by its ID")
     public ResponseEntity<ApiResponse<Order>> getOrderDetails(@PathVariable Long orderId){
         Order order = orderService.getOrderDetails(orderId);
         ApiResponse<Order> response = new ApiResponse<>(
@@ -65,6 +69,7 @@ public class OrderController {
     }
 
     @GetMapping("/restaurant/{restaurantId}")
+    @Operation(summary = "Fetch orders by restaurant", description = "Retrieve all orders placed for a specific restaurant by its ID")
     public ResponseEntity<ApiResponse<List<Order>>> getOrdersByRestaurant(@PathVariable Long restaurantId) {
         List<Order> orders = orderService.getOrdersByRestaurant(restaurantId);
         ApiResponse<List<Order>> response = new ApiResponse<>(
@@ -77,6 +82,7 @@ public class OrderController {
     }
 
     @DeleteMapping("/{orderId}")
+    @Operation(summary = "Cancel order", description = "Cancel an existing order by its ID")
     public ResponseEntity<Void> cancelOrder(@PathVariable Long orderId){
         orderService.cancelOrder(orderId);
         return ResponseEntity.noContent().build();
