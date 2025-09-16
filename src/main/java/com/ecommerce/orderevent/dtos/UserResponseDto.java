@@ -9,13 +9,12 @@ public class UserResponseDto {
     private String name;
     private String email;
 
-    public UserResponseDto(Long id, String name, String email){
-        this.id = id;
-        this.name = name;
-        this.email = email;
-    }
-
     public static UserResponseDto fromEntity(User user) {
-        return new UserResponseDto(user.getId(), user.getName(), user.getEmail());
+        UserResponseDto userResponseDto = new UserResponseDto();
+        userResponseDto.setId(user.getId());
+        userResponseDto.setName(user.getName());
+        userResponseDto.setEmail(user.getEmail());
+
+        return userResponseDto;
     }
 }

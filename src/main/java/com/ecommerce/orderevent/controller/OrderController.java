@@ -38,6 +38,20 @@ public class OrderController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @PutMapping("/{orderId}/status")
+    public ResponseEntity<ApiResponse<Order>> updateOrderStatus(
+            @PathVariable Long orderId,
+            @RequestParam String status) {
+        Order updatedOrder = orderService.updateOrderStatus(orderId, status);
+        ApiResponse<Order> response = new ApiResponse<>(
+                SUCCESS,
+                "Order Updated successfully!",
+                updatedOrder,
+                LocalDateTime.now()
+        );
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/{orderId}")
     public ResponseEntity<ApiResponse<Order>> getOrderDetails(@PathVariable Long orderId){
         Order order = orderService.getOrderDetails(orderId);
@@ -57,20 +71,6 @@ public class OrderController {
                 SUCCESS,
                 "Order of the restaurant...",
                 orders,
-                LocalDateTime.now()
-        );
-        return ResponseEntity.ok(response);
-    }
-
-    @PutMapping("/{orderId}/status")
-    public ResponseEntity<ApiResponse<Order>> updateOrderStatus(
-            @PathVariable Long orderId,
-            @RequestParam String status) {
-        Order updatedOrder = orderService.updateOrderStatus(orderId, status);
-        ApiResponse<Order> response = new ApiResponse<>(
-                SUCCESS,
-                "Order Updated successfully!",
-                updatedOrder,
                 LocalDateTime.now()
         );
         return ResponseEntity.ok(response);
