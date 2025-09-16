@@ -1,5 +1,7 @@
 package com.ecommerce.orderevent.service;
 
+import com.ecommerce.orderevent.dtos.OrderRequestDto;
+import com.ecommerce.orderevent.dtos.OrderResponseDto;
 import com.ecommerce.orderevent.entity.MenuItem;
 import com.ecommerce.orderevent.entity.Order;
 import com.ecommerce.orderevent.entity.Restaurant;
@@ -12,7 +14,6 @@ import com.ecommerce.orderevent.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.*;
-
 import static com.ecommerce.orderevent.constants.ErrorMessages.*;
 
 @Service
@@ -33,17 +34,21 @@ public class OrderService {
         this.menuItemRepository=menuItemRepository;
     }
 
-    public Order placeOrder(Long userId, Long restaurantId, List<Long> menuItemIds){
-        User user = userRepository.findById(userId)
-                .orElseThrow(()-> new ResourceNotFoundException(USER_NOT_FOUND + userId));
-        Restaurant restaurant = restaurantRepository.findById(restaurantId)
-                .orElseThrow(()-> new ResourceNotFoundException(RESTAURANT_NOT_FOUND + restaurantId));
+    public OrderResponseDto placeOrder(OrderRequestDto requestDto) {
+        User user = userRepository.findById(requestDto.getUserId())
+                .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND + requestDto.getUserId()));
 
-        List<MenuItem> items = menuItemRepository.findAllById(menuItemIds);
-        if(items.isEmpty()) throw new ResourceNotFoundException( MENU_ITEM_NOT_FOUND + menuItemIds);
-        //calculate total price
-        double totalPrice = items.stream().mapToDouble(MenuItem::getPrice).sum();
+        Restaurant restaurant = restaurantRepository.findById(requestDto.getRestaurantId())
+                .orElseThrow(() -> new ResourceNotFoundException(RESTAURANT_NOT_FOUND + requestDto.getRestaurantId()));
 
+        List<MenuItem> items = menuItemRepository.findAllById(requestDto.getMenuItemIds());
+        if (items.isEmpty()) {
+            throw new ResourceNotFoundException(MENU_ITEM_NOT_FOUND + requestDto.getMenuItemIds());
+        }
+
+        double totalPrice = items.stream()
+                .mapToDouble(MenuItem::getPrice)
+                .sum();
         Order order = new Order();
         order.setUser(user);
         order.setRestaurant(restaurant);
@@ -52,13 +57,15 @@ public class OrderService {
         order.setStatus("PLACED");
         order.setTotalPrice(totalPrice);
 
+        // maintain both sides of the relationship
         if (user.getOrders() == null) {
             user.setOrders(new ArrayList<>());
-        }// ✅ maintain both sides of the relationship
+        }
         user.getOrders().add(order);
         userRepository.save(user);
 
-        return orderRepository.save(order);
+        Order savedOrder = orderRepository.save(order);
+        return OrderResponseDto.fromEntity(savedOrder);
     }
 
     public Order getOrderDetails(Long id){
@@ -72,11 +79,12 @@ public class OrderService {
         return orderRepository.findByRestaurantId(restaurantId);
     }
 
-    public Order updateOrderStatus(Long orderId, String status) {
+    public OrderResponseDto updateOrderStatus(Long orderId, String status) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(()-> new ResourceNotFoundException(ORDER_ITEM_NOT_FOUND + orderId));
         order.setStatus(status);
-        return orderRepository.save(order);
+        Order saveOrder = orderRepository.save(order);
+        return OrderResponseDto.fromEntity(saveOrder);
     }
 
     public void cancelOrder(Long orderId) {

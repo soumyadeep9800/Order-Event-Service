@@ -17,14 +17,14 @@ public class MenuItemResponseDto {
         dto.setName(menuItem.getName());
         dto.setDescription(menuItem.getDescription());
         dto.setPrice(menuItem.getPrice());
-
-        RestaurantResponseDto restaurantDto = new RestaurantResponseDto();
-        restaurantDto.setId(menuItem.getRestaurant().getId());
-        restaurantDto.setName(menuItem.getRestaurant().getName());
-        restaurantDto.setAddress(menuItem.getRestaurant().getAddress());
-        restaurantDto.setContact(menuItem.getRestaurant().getContact());
-        dto.setRestaurant(restaurantDto);
-
+        if (menuItem.getRestaurant() != null) {
+            RestaurantResponseDto restaurantDto = new RestaurantResponseDto();
+            restaurantDto.setId(menuItem.getRestaurant().getId());
+            restaurantDto.setName(menuItem.getRestaurant().getName());
+            restaurantDto.setAddress(menuItem.getRestaurant().getAddress());
+            restaurantDto.setContact(menuItem.getRestaurant().getContact());
+            dto.setRestaurant(restaurantDto);
+        }
         return dto;
     }
 }

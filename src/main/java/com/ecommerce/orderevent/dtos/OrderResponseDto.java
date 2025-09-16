@@ -24,28 +24,17 @@ public class OrderResponseDto {
         dto.setStatus(order.getStatus());
         dto.setTotalPrice(order.getTotalPrice());
 
-        // Map user → lightweight DTO
         if (order.getUser() != null) {
-            UserResponseDto userDto = new UserResponseDto();
-            userDto.setId(order.getUser().getId());
-            userDto.setName(order.getUser().getName());
-            userDto.setEmail(order.getUser().getEmail());
-            dto.setUser(userDto);
+            dto.setUser(UserResponseDto.fromEntity(order.getUser()));
         }
 
-        // Map restaurant
         if (order.getRestaurant() != null) {
-            RestaurantResponseDto restaurantDto = new RestaurantResponseDto();
-            restaurantDto.setId(order.getRestaurant().getId());
-            restaurantDto.setName(order.getRestaurant().getName());
-            restaurantDto.setAddress(order.getRestaurant().getAddress());
-            restaurantDto.setContact(order.getRestaurant().getContact());
-            dto.setRestaurant(restaurantDto);
+            dto.setRestaurant(RestaurantResponseDto.fromEntity(order.getRestaurant()));
         }
 
-        // Map menu items
         if (order.getItems() != null) {
-            dto.setItems(order.getItems().stream()
+            dto.setItems(order.getItems()
+                    .stream()
                     .map(MenuItemResponseDto::fromEntity)
                     .collect(Collectors.toList()));
         }

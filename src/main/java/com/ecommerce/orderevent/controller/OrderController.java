@@ -1,14 +1,17 @@
 package com.ecommerce.orderevent.controller;
 
+import com.ecommerce.orderevent.dtos.OrderRequestDto;
+import com.ecommerce.orderevent.dtos.OrderResponseDto;
+import com.ecommerce.orderevent.dtos.OrderStatusUpdateRequestDto;
 import com.ecommerce.orderevent.entity.Order;
 import com.ecommerce.orderevent.service.OrderService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import com.ecommerce.orderevent.dtos.ApiResponse;
 import static com.ecommerce.orderevent.constants.ApiResponseStatus.SUCCESS;
 import org.springframework.web.bind.annotation.*;
-
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -16,36 +19,33 @@ import java.util.*;
 @RequestMapping("/orders")
 @Tag(name = "Order Management", description = "Endpoints for managing orders")
 public class OrderController {
+
     private final OrderService orderService;
     public  OrderController(OrderService orderService){
         this.orderService=orderService;
     }
 
     @PostMapping("/placeOrder")
-    public ResponseEntity<ApiResponse<Order>> placeOrder(@RequestBody Map<String, Object> request){
-        Long userId = Long.valueOf(request.get("UserId").toString());
-        Long restaurantId = Long.valueOf(request.get("restaurantId").toString());
-        @SuppressWarnings("unchecked")
-        List<Long> menuItemIds = (List<Long>) request.get("menuItemIds");
-
-        Order order = orderService.placeOrder(userId, restaurantId, menuItemIds);
-        ApiResponse<Order> response = new ApiResponse<>(
+    public ResponseEntity<ApiResponse<OrderResponseDto>> placeOrder(@RequestBody @Valid OrderRequestDto requestDto){
+        OrderResponseDto responseDto = orderService.placeOrder(requestDto);
+        ApiResponse<OrderResponseDto> response = new ApiResponse<>(
                 SUCCESS,
                 "Order placed successfully!",
-                order,
+                responseDto,
                 LocalDateTime.now()
         );
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PutMapping("/{orderId}/status")
-    public ResponseEntity<ApiResponse<Order>> updateOrderStatus(
+    public ResponseEntity<ApiResponse<OrderResponseDto>> updateOrderStatus(
             @PathVariable Long orderId,
-            @RequestParam String status) {
-        Order updatedOrder = orderService.updateOrderStatus(orderId, status);
-        ApiResponse<Order> response = new ApiResponse<>(
+            @RequestBody OrderStatusUpdateRequestDto requestDto) {
+
+        OrderResponseDto updatedOrder = orderService.updateOrderStatus(orderId, requestDto.getStatus());
+        ApiResponse<OrderResponseDto> response = new ApiResponse<>(
                 SUCCESS,
-                "Order Updated successfully!",
+                "Order updated successfully!",
                 updatedOrder,
                 LocalDateTime.now()
         );
