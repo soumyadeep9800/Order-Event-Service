@@ -9,6 +9,7 @@ import com.ecommerce.orderevent.entity.MenuItem;
 import com.ecommerce.orderevent.entity.Restaurant;
 import com.ecommerce.orderevent.service.MenuItemService;
 import com.ecommerce.orderevent.service.RestaurantService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +29,8 @@ public class RestaurantController {
         this.menuItemService=menuItemService;
     }
 
-    @PostMapping     //@Operation(summary = "Fetch restaurant by ID", description = "Get details of a specific restaurant")
+    @PostMapping
+    @Operation(summary = "Add new restaurant", description = "Create a new restaurant and save it to the database")
     public ResponseEntity<ApiResponse<RestaurantResponseDto>> addNewRestaurant(@RequestBody RestaurantRequestDto restaurantRequestDto){
         RestaurantResponseDto saveRestaurant = restaurantService.addRestaurant(restaurantRequestDto);
         ApiResponse<RestaurantResponseDto> response = new ApiResponse<>(
@@ -41,6 +43,7 @@ public class RestaurantController {
     }
 
     @PutMapping("/{id}")
+    @Operation(summary = "Update restaurant", description = "Update details of an existing restaurant by its ID")
     public ResponseEntity<ApiResponse<RestaurantResponseDto>> updateRestaurant(@PathVariable Long id, @RequestBody RestaurantRequestDto restaurantRequestDto){
         RestaurantResponseDto restaurant = restaurantService.updateRestaurant(id, restaurantRequestDto);
         ApiResponse<RestaurantResponseDto> response = new ApiResponse<>(
@@ -53,6 +56,7 @@ public class RestaurantController {
     }
 
     @GetMapping
+    @Operation(summary = "Fetch all restaurants", description = "Retrieve a list of all restaurants")
     public ResponseEntity<ApiResponse<List<Restaurant>>> getAllRestaurant(){
         List<Restaurant> allRestaurant = restaurantService.getAllRestaurant();
         ApiResponse<List<Restaurant>> response = new ApiResponse<>(
@@ -65,6 +69,7 @@ public class RestaurantController {
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Fetch restaurant by ID", description = "Get details of a specific restaurant by its ID")
     public ResponseEntity<ApiResponse<Restaurant>> getRestaurantById(@PathVariable Long id){
         Restaurant restaurant = restaurantService.getRestaurantById(id);
         ApiResponse<Restaurant> response = new ApiResponse<>(
@@ -77,6 +82,7 @@ public class RestaurantController {
     }
 
     @GetMapping("/{id}/menu")
+    @Operation(summary = "Fetch menu of a restaurant", description = "Retrieve all menu items for a specific restaurant by its ID")
     public ResponseEntity<ApiResponse<List<MenuItem>>> menuOfRestaurant(@PathVariable Long id){
         List<MenuItem> listOfMenus = menuItemService.getMenuItemsByRestaurant(id);
         ApiResponse<List<MenuItem>> response = new ApiResponse<>(
@@ -89,6 +95,7 @@ public class RestaurantController {
     }
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "Delete restaurant", description = "Delete an existing restaurant by its ID")
     public ResponseEntity<ApiResponse<Void>> deleteRestaurant(@PathVariable Long id) {
         restaurantService.deleteRestaurant(id);
         ApiResponse<Void> response = new ApiResponse<>(
