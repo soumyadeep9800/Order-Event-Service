@@ -50,7 +50,7 @@ public class MenuItemController {
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
     }
 
-    @GetMapping("/menu-items/{id}")
+    @GetMapping("/{id}")
     @Operation(summary = "Fetch menu item by ID", description = "Retrieve details of a specific menu item by its ID")
     public ResponseEntity<ApiResponse<MenuItem>> getMenuItem(@PathVariable Long id) {
         MenuItem menuItem = menuItemService.findMenuItem(id);
