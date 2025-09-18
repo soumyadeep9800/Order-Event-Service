@@ -1,14 +1,17 @@
 package com.ecommerce.orderevent.service;
 
+import com.ecommerce.orderevent.entity.MenuItem;
 import com.ecommerce.orderevent.entity.Restaurant;
 import com.ecommerce.orderevent.entity.User;
 import com.ecommerce.orderevent.exception.ResourceNotFoundException;
 import com.ecommerce.orderevent.models.OrderEvent;
+import com.ecommerce.orderevent.repository.MenuItemRepository;
 import com.ecommerce.orderevent.repository.UserRepository;
 import com.ecommerce.orderevent.repository.RestaurantRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import java.util.List;
 import static com.ecommerce.orderevent.constants.ErrorMessages.*;
 
 @Service
@@ -19,68 +22,127 @@ public class NotificationService {
     private final EmailService emailService;
     private final UserRepository userRepository;
     private final RestaurantRepository restaurantRepository;
+    private final MenuItemRepository menuItemRepository;
 
     public NotificationService(EmailService emailService,
                                UserRepository userRepository,
-                               RestaurantRepository restaurantRepository) {
+                               RestaurantRepository restaurantRepository,
+                               MenuItemRepository menuItemRepository) {
         this.emailService = emailService;
         this.userRepository = userRepository;
         this.restaurantRepository = restaurantRepository;
+        this.menuItemRepository=menuItemRepository;
     }
+
+    private String buildItemDetails(List<MenuItem> items) {
+        StringBuilder itemDetails = new StringBuilder();
+        for (MenuItem item : items) {
+            itemDetails.append("- ")
+                    .append(item.getName())
+                    .append(" (₹").append(item.getPrice()).append(")")
+                    .append("\n");
+        }
+        return itemDetails.toString();
+    }
+
 
     public void processNotification(OrderEvent event) {
         try {
             switch (event.getStatus()) {
                 case "PLACED" -> {
+                    // Fetch items
+                    List<MenuItem> items = menuItemRepository.findAllById(event.getMenuItemIds());
+                    double totalPrice = items.stream()
+                            .mapToDouble(MenuItem::getPrice)
+                            .sum();
+                    String itemDetails = buildItemDetails(items);
+
                     // Notify restaurant
                     Restaurant restaurant = restaurantRepository.findById(event.getRestaurantId())
-                            .orElseThrow(() -> new RuntimeException("Restaurant not found: " + event.getRestaurantId()));
+                            .orElseThrow(() -> new ResourceNotFoundException(RESTAURANT_NOT_FOUND+ event.getRestaurantId()));
+
                     emailService.sendEmail(
                             restaurant.getEmail(),
-                            "🍽 New Order Received",
-                            "Order #" + event.getOrderId() + " placed by User " + event.getUserId()
-                                    + "\nItems: " + event.getMenuItemIds()
+                            "🍽 New Order Received - #" + event.getOrderId(),
+                            "Hello " + restaurant.getName() + ",\n\n" +
+                                    "You have received a new order!\n\n" +
+                                    "Order ID: " + event.getOrderId() + "\n" +
+                                    "Customer ID: " + event.getUserId() + "\n\n" +
+                                    "Ordered Items:\n" + itemDetails +
+                                    "\nTotal Price: ₹" + totalPrice + "\n\n" +
+                                    "Please prepare the order at your earliest convenience."
                     );
                     log.info("📧 Sent 'PLACED' email to restaurant {}", restaurant.getEmail());
 
-                    // Debug log before user fetch
+                    // Notify user
                     log.info("🔎 Fetching user {} for order {}", event.getUserId(), event.getOrderId());
-
                     User user = userRepository.findById(event.getUserId())
-                            .orElseThrow(() -> new RuntimeException("User not found: " + event.getUserId()));
+                            .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND+ event.getUserId()));
 
                     log.info("✅ Found user: {} with email {}", user.getName(), user.getEmail());
 
                     emailService.sendEmail(
                             user.getEmail(),
-                            "🛒 Order Placed Successfully",
+                            "🛒 Order PLACED - #" + event.getOrderId(),
                             "Hi " + user.getName() + ",\n\n" +
-                                    "Your order #" + event.getOrderId() + " has been placed successfully.\n" +
-                                    "Items: " + event.getMenuItemIds() + "\n\n" +
-                                    "We’ll notify you once the restaurant accepts your order!"
+                                    "Thank you for your order! Here are the details:\n\n" +
+                                    "Order ID: " + event.getOrderId() + "\n" +
+                                    "Restaurant: " + restaurant.getName() + "\n\n" +
+                                    "Items:\n" + itemDetails +
+                                    "\nTotal Price: ₹" + totalPrice + "\n\n" +
+                                    "We’ll notify you once the restaurant accepts your order.\n\n" +
+                                    "— Your Food Ordering App 🍴"
                     );
                     log.info("📧 Sent 'PLACED' confirmation email to user {}", user.getEmail());
                 }
                 case "ACCEPTED" -> {
-                    // Notify user (lookup from DB)
+                    // Fetch items for nicer email
+                    List<MenuItem> items = menuItemRepository.findAllById(event.getMenuItemIds());
+                    double totalPrice = items.stream()
+                            .mapToDouble(MenuItem::getPrice)
+                            .sum();
+                    String itemDetails = buildItemDetails(items);
+
                     User user = userRepository.findById(event.getUserId())
-                            .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND+ event.getUserId()));
+                            .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND + event.getUserId()));
+
+                    Restaurant restaurant = restaurantRepository.findById(event.getRestaurantId())
+                            .orElseThrow(() -> new ResourceNotFoundException(RESTAURANT_NOT_FOUND + event.getRestaurantId()));
 
                     emailService.sendEmail(
                             user.getEmail(),
-                            "✅ Order Confirmed",
-                            "Your order #" + event.getOrderId() + " was accepted!"
+                            "✅ Order Confirmed - #" + event.getOrderId(),
+                            "Hi " + user.getName() + ",\n\n" +
+                                    "Good news! Your order has been accepted by **" + restaurant.getName() + "** 🎉\n\n" +
+                                    "Order Details:\n" +
+                                    "Order ID: " + event.getOrderId() + "\n" +
+                                    "Items:\n" + itemDetails +
+                                    "\nTotal Price: ₹" + totalPrice + "\n\n" +
+                                    "Your food will be prepared soon. Thanks for ordering with us!\n\n" +
+                                    "— Your Food Ordering App 🍴"
                     );
                     log.info("📧 Sent 'ACCEPTED' email to user {}", user.getEmail());
                 }
                 case "REJECTED" -> {
+                    List<MenuItem> items = menuItemRepository.findAllById(event.getMenuItemIds());
+                    String itemDetails = buildItemDetails(items);
+
                     User user = userRepository.findById(event.getUserId())
                             .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND + event.getUserId()));
 
+                    Restaurant restaurant = restaurantRepository.findById(event.getRestaurantId())
+                            .orElseThrow(() -> new ResourceNotFoundException(RESTAURANT_NOT_FOUND + event.getRestaurantId()));
+
                     emailService.sendEmail(
                             user.getEmail(),
-                            "❌ Order Rejected",
-                            "Sorry, your order #" + event.getOrderId() + " was rejected."
+                            "❌ Order Rejected - #" + event.getOrderId(),
+                            "Hi " + user.getName() + ",\n\n" +
+                                    "We’re sorry to inform you that your order has been rejected by **" + restaurant.getName() + "** 😞\n\n" +
+                                    "Order Details:\n" +
+                                    "Order ID: " + event.getOrderId() + "\n" +
+                                    "Items:\n" + itemDetails + "\n\n" +
+                                    "No worries — you can try ordering from another restaurant.\n\n" +
+                                    "— Your Food Ordering App 🍴"
                     );
                     log.info("📧 Sent 'REJECTED' email to user {}", user.getEmail());
                 }
