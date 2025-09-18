@@ -7,6 +7,7 @@ import com.ecommerce.orderevent.entity.Order;
 import com.ecommerce.orderevent.entity.Restaurant;
 import com.ecommerce.orderevent.entity.User;
 import com.ecommerce.orderevent.exception.ResourceNotFoundException;
+import com.ecommerce.orderevent.models.OrderEvent;
 import com.ecommerce.orderevent.repository.MenuItemRepository;
 import com.ecommerce.orderevent.repository.OrderRepository;
 import com.ecommerce.orderevent.repository.RestaurantRepository;
@@ -17,10 +18,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.kafka.core.KafkaTemplate;
+
 import static com.ecommerce.orderevent.constants.ErrorMessages.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 @ExtendWith(MockitoExtension.class)
 class OrderServiceTest {
@@ -34,6 +38,8 @@ class OrderServiceTest {
     private RestaurantRepository restaurantRepository;
     @Mock
     private MenuItemRepository menuItemRepository;
+    @Mock
+    private KafkaTemplate<String, OrderEvent> kafkaTemplate;
 
     private User user;
     private Restaurant restaurant;
@@ -58,8 +64,7 @@ class OrderServiceTest {
     }
 
     @Test
-    void testPlaceOrder_Success() {
-        // Arrange
+    void testPlaceOrder_Success () {
         OrderRequestDto requestDto = new OrderRequestDto();
         requestDto.setUserId(1L);
         requestDto.setRestaurantId(1L);
@@ -68,7 +73,6 @@ class OrderServiceTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(restaurantRepository.findById(1L)).thenReturn(Optional.of(restaurant));
         when(menuItemRepository.findAllById(List.of(1L))).thenReturn(List.of(menuItem));
-        menuItem.setRestaurant(restaurant);
 
         Order savedOrder = new Order();
         savedOrder.setId(100L);
@@ -79,8 +83,12 @@ class OrderServiceTest {
         savedOrder.setStatus("PLACED");
 
         when(orderRepository.save(any(Order.class))).thenReturn(savedOrder);
+        when(kafkaTemplate.send(anyString(), any(OrderEvent.class)))
+                .thenReturn(CompletableFuture.completedFuture(null));
+
         // Act
         OrderResponseDto result = orderService.placeOrder(requestDto);
+
         // Assert
         assertNotNull(result);
         assertEquals(100L, result.getId());
@@ -89,12 +97,16 @@ class OrderServiceTest {
         assertEquals("Test User", result.getUser().getName());
         assertEquals("Test Restaurant", result.getRestaurant().getName());
         assertEquals(1, result.getItems().size());
-        // Verify repository calls
-        verify(userRepository, times(1)).findById(1L);
-        verify(restaurantRepository, times(1)).findById(1L);
-        verify(menuItemRepository, times(1)).findAllById(List.of(1L));
-        verify(orderRepository, times(1)).save(any(Order.class));
+
+        // Verify repository and kafka calls
+        verify(userRepository).findById(1L);
+        verify(restaurantRepository).findById(1L);
+        verify(menuItemRepository).findAllById(List.of(1L));
+        verify(userRepository).save(user);
+        verify(orderRepository).save(any(Order.class));
+        verify(kafkaTemplate).send(eq("order-events"), any(OrderEvent.class));
     }
+
 
     @Test
     void testPlaceOrder_UserNotFound() {
