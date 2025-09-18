@@ -15,3 +15,15 @@ spring:
           json:
             trusted:
               packages: "*"
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: soumyadeepghosh9800@gmail.com
+    password: rpsnyxpizcuizerr
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true

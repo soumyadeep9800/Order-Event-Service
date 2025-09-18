@@ -22,6 +22,7 @@ public class RestaurantService {
         restaurant.setName(restaurantRequestDto.getName());
         restaurant.setContact(restaurantRequestDto.getContact());
         restaurant.setAddress(restaurantRequestDto.getAddress());
+        restaurant.setEmail(restaurantRequestDto.getEmail());
 
         if (restaurantRequestDto.getMenuItems() != null) {
             List<MenuItem> menuItems = restaurantRequestDto.getMenuItems().stream()
@@ -48,6 +49,7 @@ public class RestaurantService {
         existingRestaurant.setName(restaurantRequestDto.getName());
         existingRestaurant.setAddress(restaurantRequestDto.getAddress());
         existingRestaurant.setContact(restaurantRequestDto.getContact());
+        existingRestaurant.setEmail(restaurantRequestDto.getEmail());
 
         if (restaurantRequestDto.getMenuItems() != null) {
             List<MenuItem> menuItems = restaurantRequestDto.getMenuItems().stream()

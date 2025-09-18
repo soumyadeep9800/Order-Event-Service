@@ -17,6 +17,9 @@ public class Restaurant {
     @Column(nullable = false)
     private String name;
 
+    @Column(nullable = false, unique = true)
+    private String email;
+
     private String address;
 
     private String contact;

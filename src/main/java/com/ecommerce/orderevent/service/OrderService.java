@@ -7,10 +7,12 @@ import com.ecommerce.orderevent.entity.Order;
 import com.ecommerce.orderevent.entity.Restaurant;
 import com.ecommerce.orderevent.entity.User;
 import com.ecommerce.orderevent.exception.ResourceNotFoundException;
+import com.ecommerce.orderevent.models.OrderEvent;
 import com.ecommerce.orderevent.repository.MenuItemRepository;
 import com.ecommerce.orderevent.repository.OrderRepository;
 import com.ecommerce.orderevent.repository.RestaurantRepository;
 import com.ecommerce.orderevent.repository.UserRepository;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -19,19 +21,24 @@ import static com.ecommerce.orderevent.constants.ErrorMessages.*;
 @Service
 public class OrderService {
 
+    private static final String ORDER_TOPIC = "order-events";
+
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
     private final RestaurantRepository restaurantRepository;
     private final MenuItemRepository menuItemRepository;
+    private final KafkaTemplate<String, OrderEvent> kafkaTemplate;
 
     public OrderService(OrderRepository orderRepository,
                         UserRepository userRepository,
                         RestaurantRepository restaurantRepository,
-                        MenuItemRepository menuItemRepository){
+                        MenuItemRepository menuItemRepository,
+                        KafkaTemplate<String, OrderEvent> kafkaTemplate){
         this.orderRepository=orderRepository;
         this.restaurantRepository=restaurantRepository;
         this.userRepository=userRepository;
         this.menuItemRepository=menuItemRepository;
+        this.kafkaTemplate = kafkaTemplate;
     }
 
     public OrderResponseDto placeOrder(OrderRequestDto requestDto) {
@@ -65,6 +72,16 @@ public class OrderService {
         userRepository.save(user);
 
         Order savedOrder = orderRepository.save(order);
+
+        OrderEvent event = new OrderEvent(
+                savedOrder.getId(),
+                user.getId(),
+                restaurant.getId(),
+                items.stream().map(MenuItem::getId).toList(),
+                savedOrder.getStatus()
+        );
+        kafkaTemplate.send(ORDER_TOPIC, event);
+
         return OrderResponseDto.fromEntity(savedOrder);
     }
 
