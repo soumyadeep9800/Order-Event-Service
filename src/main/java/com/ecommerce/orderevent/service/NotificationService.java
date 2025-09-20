@@ -45,7 +45,6 @@ public class NotificationService {
         return itemDetails.toString();
     }
 
-
     public void processNotification(OrderEvent event) {
         try {
             switch (event.getStatus()) {
@@ -60,7 +59,8 @@ public class NotificationService {
                     // Notify restaurant
                     Restaurant restaurant = restaurantRepository.findById(event.getRestaurantId())
                             .orElseThrow(() -> new ResourceNotFoundException(RESTAURANT_NOT_FOUND+ event.getRestaurantId()));
-
+                    String acceptLink = "http://localhost:8080/orders/" + event.getOrderId() + "/accept";
+                    String rejectLink = "http://localhost:8080/orders/" + event.getOrderId() + "/reject";
                     emailService.sendEmail(
                             restaurant.getEmail(),
                             "🍽 New Order Received - #" + event.getOrderId(),
@@ -68,9 +68,12 @@ public class NotificationService {
                                     "You have received a new order!\n\n" +
                                     "Order ID: " + event.getOrderId() + "\n" +
                                     "Customer ID: " + event.getUserId() + "\n\n" +
-                                    "Ordered Items:\n" + itemDetails +
-                                    "\nTotal Price: ₹" + totalPrice + "\n\n" +
-                                    "Please prepare the order at your earliest convenience."
+                                    "Ordered Items:\n" + itemDetails + "\n" +
+                                    "Total Price: ₹" + totalPrice + "\n\n" +
+                                    "Accept Order: " + acceptLink + "\n" +      // ✅ accept link
+                                    "Reject Order: " + rejectLink + "\n\n" +    // ✅ reject link
+                                    "Please take action at your earliest convenience.\n\n" +
+                                    "— Order Event Service 🍴"
                     );
                     log.info("📧 Sent 'PLACED' email to restaurant {}", restaurant.getEmail());
 
@@ -91,7 +94,7 @@ public class NotificationService {
                                     "Items:\n" + itemDetails +
                                     "\nTotal Price: ₹" + totalPrice + "\n\n" +
                                     "We’ll notify you once the restaurant accepts your order.\n\n" +
-                                    "— Your Food Ordering App 🍴"
+                                    "— Order Event Service 🍴"
                     );
                     log.info("📧 Sent 'PLACED' confirmation email to user {}", user.getEmail());
                 }
@@ -119,7 +122,7 @@ public class NotificationService {
                                     "Items:\n" + itemDetails +
                                     "\nTotal Price: ₹" + totalPrice + "\n\n" +
                                     "Your food will be prepared soon. Thanks for ordering with us!\n\n" +
-                                    "— Your Food Ordering App 🍴"
+                                    "— Order Event Service 🍴"
                     );
                     log.info("📧 Sent 'ACCEPTED' email to user {}", user.getEmail());
                 }
@@ -142,7 +145,7 @@ public class NotificationService {
                                     "Order ID: " + event.getOrderId() + "\n" +
                                     "Items:\n" + itemDetails + "\n\n" +
                                     "No worries — you can try ordering from another restaurant.\n\n" +
-                                    "— Your Food Ordering App 🍴"
+                                    "— Order Event Service 🍴"
                     );
                     log.info("📧 Sent 'REJECTED' email to user {}", user.getEmail());
                 }

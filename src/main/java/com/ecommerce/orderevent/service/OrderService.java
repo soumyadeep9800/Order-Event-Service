@@ -116,4 +116,24 @@ public class OrderService {
         }
         orderRepository.deleteById(orderId);
     }
+
+    public String updateOrderStatusForRestaurant(Long orderId, String status) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException(ORDER_ITEM_NOT_FOUND + orderId));
+        if (!order.getStatus().equals("PLACED")) {
+            throw new IllegalStateException("Order cannot be modified at this stage.");
+        }
+        order.setStatus(status);
+        orderRepository.save(order);
+        //kafka event
+        OrderEvent event = new OrderEvent(
+                order.getId(),
+                order.getUser().getId(),
+                order.getRestaurant().getId(),
+                order.getItems().stream().map(MenuItem::getId).toList(),
+                status
+        );
+        kafkaTemplate.send(ORDER_TOPIC, event);
+        return status;
+    }
 }

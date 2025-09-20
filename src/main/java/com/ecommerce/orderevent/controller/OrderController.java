@@ -28,7 +28,7 @@ public class OrderController {
 
     @PostMapping("/placeOrder")
     @Operation(summary = "Place new order", description = "Create a new order and save it to the system")
-    public ResponseEntity<ApiResponse<OrderResponseDto>> placeOrder(@RequestBody @Valid OrderRequestDto requestDto){
+    public ResponseEntity<ApiResponse<OrderResponseDto>> placeOrder(@RequestBody @Valid OrderRequestDto requestDto) {
         OrderResponseDto responseDto = orderService.placeOrder(requestDto);
         ApiResponse<OrderResponseDto> response = new ApiResponse<>(
                 SUCCESS,
@@ -37,22 +37,6 @@ public class OrderController {
                 LocalDateTime.now()
         );
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
-
-    @PutMapping("/{orderId}")
-    @Operation(summary = "Update order status", description = "Update the status of an existing order by its ID")
-    public ResponseEntity<ApiResponse<OrderResponseDto>> updateOrderStatus(
-            @PathVariable Long orderId,
-            @RequestBody OrderStatusUpdateRequestDto requestDto) {
-
-        OrderResponseDto updatedOrder = orderService.updateOrderStatus(orderId, requestDto.getStatus());
-        ApiResponse<OrderResponseDto> response = new ApiResponse<>(
-                SUCCESS,
-                "Order updated successfully!",
-                updatedOrder,
-                LocalDateTime.now()
-        );
-        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{orderId}")
@@ -98,5 +82,45 @@ public class OrderController {
     public ResponseEntity<Void> cancelOrder(@PathVariable Long orderId){
         orderService.cancelOrder(orderId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{orderId}")
+    @Operation(summary = "Update order status", description = "Update the status of an existing order by its ID")
+    public ResponseEntity<ApiResponse<OrderResponseDto>> updateOrderStatus(
+            @PathVariable Long orderId,
+            @RequestBody OrderStatusUpdateRequestDto requestDto) {
+
+        OrderResponseDto updatedOrder = orderService.updateOrderStatus(orderId, requestDto.getStatus());
+        ApiResponse<OrderResponseDto> response = new ApiResponse<>(
+                SUCCESS,
+                "Order updated successfully!",
+                updatedOrder,
+                LocalDateTime.now()
+        );
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{orderId}/accept")
+    public ResponseEntity<ApiResponse<String>> acceptOrder(@PathVariable Long orderId) {
+        String status = orderService.updateOrderStatusForRestaurant(orderId, "ACCEPTED");
+        ApiResponse<String> response = new ApiResponse<>(
+                SUCCESS,
+                "Order accepted successfully!",
+                status,
+                LocalDateTime.now()
+        );
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{orderId}/reject")
+    public ResponseEntity<ApiResponse<String>> rejectOrder(@PathVariable Long orderId) {
+        String status = orderService.updateOrderStatusForRestaurant(orderId, "REJECTED");
+        ApiResponse<String> response = new ApiResponse<>(
+                SUCCESS,
+                "Order rejected successfully!",
+                status,
+                LocalDateTime.now()
+        );
+        return ResponseEntity.ok(response);
     }
 }
