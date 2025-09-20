@@ -99,6 +99,7 @@ public class NotificationService {
                     log.info("📧 Sent 'PLACED' confirmation email to user {}", user.getEmail());
                 }
                 case "ACCEPTED" -> {
+                    String paymentLink = "http://localhost:8080/payments/" + event.getOrderId() + "/pay";
                     // Fetch items for nicer email
                     List<MenuItem> items = menuItemRepository.findAllById(event.getMenuItemIds());
                     double totalPrice = items.stream()
@@ -114,14 +115,16 @@ public class NotificationService {
 
                     emailService.sendEmail(
                             user.getEmail(),
-                            "✅ Order Confirmed - #" + event.getOrderId(),
+                            "✅ Order Accept - #" + event.getOrderId(),
                             "Hi " + user.getName() + ",\n\n" +
                                     "Good news! Your order has been accepted by **" + restaurant.getName() + "** 🎉\n\n" +
                                     "Order Details:\n" +
                                     "Order ID: " + event.getOrderId() + "\n" +
                                     "Items:\n" + itemDetails +
                                     "\nTotal Price: ₹" + totalPrice + "\n\n" +
-                                    "Your food will be prepared soon. Thanks for ordering with us!\n\n" +
+                                    "Please complete your payment by clicking the link below:\n" +
+                                    paymentLink + "\n\n" +
+                                    "Your food will be prepared once payment is confirmed.\n\n" +
                                     "— Order Event Service 🍴"
                     );
                     log.info("📧 Sent 'ACCEPTED' email to user {}", user.getEmail());
@@ -148,6 +151,25 @@ public class NotificationService {
                                     "— Order Event Service 🍴"
                     );
                     log.info("📧 Sent 'REJECTED' email to user {}", user.getEmail());
+                }
+                case "PAYMENT_SUCCESS" -> {
+                    User user = userRepository.findById(event.getUserId())
+                            .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND + event.getUserId()));
+
+                    Restaurant restaurant = restaurantRepository.findById(event.getRestaurantId())
+                            .orElseThrow(() -> new ResourceNotFoundException(RESTAURANT_NOT_FOUND + event.getRestaurantId()));
+
+                    emailService.sendEmail(
+                            user.getEmail(),
+                            "💳 Payment Successful - #" + event.getOrderId(),
+                            "Hi " + user.getName() + ",\n\n" +
+                                    "Your payment for order #" + event.getOrderId() + " has been successfully processed. 🎉\n\n" +
+                                    "Restaurant: " + restaurant.getName() + "\n\n" +
+                                    "The restaurant will now start preparing your food.\n\n" +
+                                    "Thank you for choosing us!\n\n" +
+                                    "— Order Event Service 🍴"
+                    );
+                    log.info("📧 Sent 'PAYMENT_SUCCESS' email to user {}", user.getEmail());
                 }
                 default -> log.warn("⚠️ Unknown order status: {}", event.getStatus());
             }
