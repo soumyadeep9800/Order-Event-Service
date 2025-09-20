@@ -10,13 +10,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
-import java.util.*;
+
 
 @RestController
 @RequestMapping("/public")
@@ -26,6 +22,17 @@ public class PublicController {
     private final UserService userService;
     public PublicController(UserService userService){
         this.userService=userService;
+    }
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<Void>> check(){
+        ApiResponse<Void> response = new ApiResponse<>(
+                SUCCESS,
+                "Server is running!",
+                null,
+                LocalDateTime.now()
+        );
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/register")
