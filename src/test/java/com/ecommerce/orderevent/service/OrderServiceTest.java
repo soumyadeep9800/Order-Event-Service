@@ -272,4 +272,55 @@ class OrderServiceTest {
         verify(orderRepository, times(1)).existsById(orderId);
         verify(orderRepository, times(1)).deleteById(orderId);
     }
+
+    @Test
+    void testUpdateOrderStatusForRestaurant_Success() {
+        // Arrange
+        Order order = new Order();
+        order.setId(500L);
+        order.setStatus("PLACED");
+        order.setUser(user);
+        order.setRestaurant(restaurant);
+        order.setItems(List.of(menuItem));
+
+        when(orderRepository.findById(500L)).thenReturn(Optional.of(order));
+        when(orderRepository.save(order)).thenReturn(order);
+        when(kafkaTemplate.send(anyString(), any(OrderEvent.class)))
+                .thenReturn(CompletableFuture.completedFuture(null));
+
+        // Act
+        String result = orderService.updateOrderStatusForRestaurant(500L, "ACCEPTED");
+        // Assert
+        assertEquals("ACCEPTED", result);
+        assertEquals("ACCEPTED", order.getStatus()); // order object updated
+        verify(orderRepository, times(1)).findById(500L);
+        verify(orderRepository, times(1)).save(order);
+        verify(kafkaTemplate, times(1)).send(eq("order-events"), any(OrderEvent.class));
+    }
+
+    @Test
+    void testUpdateOrderStatusForRestaurant_OrderNotFound() {
+        when(orderRepository.findById(500L)).thenReturn(Optional.empty());
+
+        ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
+                () -> orderService.updateOrderStatusForRestaurant(500L, "ACCEPTED"));
+        assertEquals(ORDER_ITEM_NOT_FOUND + 500L, ex.getMessage());
+        verify(orderRepository, never()).save(any(Order.class));
+        verify(kafkaTemplate, never()).send(anyString(), any(OrderEvent.class));
+    }
+
+    @Test
+    void testUpdateOrderStatusForRestaurant_InvalidState() {
+        Order order = new Order();
+        order.setId(501L);
+        order.setStatus("DELIVERED"); // Not "PLACED"
+        when(orderRepository.findById(501L)).thenReturn(Optional.of(order));
+
+        IllegalStateException ex = assertThrows(IllegalStateException.class,
+                () -> orderService.updateOrderStatusForRestaurant(501L, "ACCEPTED"));
+        assertEquals("Order cannot be modified at this stage.", ex.getMessage());
+        verify(orderRepository, never()).save(any(Order.class));
+        verify(kafkaTemplate, never()).send(anyString(), any(OrderEvent.class));
+    }
+
 }
