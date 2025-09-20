@@ -90,6 +90,12 @@ public class OrderService {
                 .orElseThrow(()-> new ResourceNotFoundException(ORDER_ITEM_NOT_FOUND + id));
     }
 
+    public String getOrderStatus(Long id) {
+        return orderRepository.findById(id)
+                .map(Order::getStatus) // ✅ only return status
+                .orElseThrow(() -> new ResourceNotFoundException(ORDER_ITEM_NOT_FOUND + id));
+    }
+
     public List<Order> getOrdersByRestaurant(Long restaurantId) {
         restaurantRepository.findById(restaurantId)
                 .orElseThrow(()-> new ResourceNotFoundException(RESTAURANT_NOT_FOUND + restaurantId));

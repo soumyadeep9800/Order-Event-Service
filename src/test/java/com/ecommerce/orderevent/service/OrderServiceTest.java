@@ -232,6 +232,36 @@ class OrderServiceTest {
         verify(orderRepository, never()).save(any(Order.class));
     }
 
+    @Test
+    void testGetOrderStatus_OrderFound() {
+        // Arrange
+        Long orderId = 1L;
+        Order order = new Order();
+        order.setId(orderId);
+        order.setStatus("PLACED");
+
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+
+        // Act
+        String status = orderService.getOrderStatus(orderId);
+        // Assert
+        assertEquals("PLACED", status);
+        verify(orderRepository, times(1)).findById(orderId);
+    }
+
+    @Test
+    void testGetOrderStatus_OrderNotFound() {
+        Long orderId = 99L;
+        when(orderRepository.findById(orderId)).thenReturn(Optional.empty());
+
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
+                () -> orderService.getOrderStatus(orderId)
+        );
+        assertEquals(ORDER_ITEM_NOT_FOUND + orderId, exception.getMessage());
+        verify(orderRepository, times(1)).findById(orderId);
+    }
+
 
     @Test
     void testCancelOrder() {
