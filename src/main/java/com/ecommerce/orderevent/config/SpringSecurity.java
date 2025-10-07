@@ -32,6 +32,7 @@ public class SpringSecurity {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/orders/**", "/users/**").authenticated() //,"/users/**"
                         .anyRequest().permitAll()
                 )
                 .sessionManagement(session -> session

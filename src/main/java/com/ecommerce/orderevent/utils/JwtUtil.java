@@ -20,7 +20,7 @@ public class JwtUtil {
         return createToken(claims, username);
     }
 
-    private String createToken(Map<String, Object> claims, String subject) {//eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyYW0iLCJpYXQiOjE3NTU4NzU3NzgsImV4cCI6MTc1NTg3ODc3OH0.P68Dwa5r5CI048rfFhNWzqrg5tPN4dNNOeZAnN3_QdA
+    private String createToken(Map<String, Object> claims, String subject) {
         return Jwts.builder()
                 .claims(claims)
                 .subject(subject)
