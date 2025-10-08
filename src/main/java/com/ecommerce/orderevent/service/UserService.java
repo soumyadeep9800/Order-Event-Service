@@ -6,6 +6,7 @@ import com.ecommerce.orderevent.entity.Order;
 import com.ecommerce.orderevent.entity.User;
 import com.ecommerce.orderevent.exception.ResourceNotFoundException;
 import com.ecommerce.orderevent.repository.UserRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.*;
 
@@ -15,9 +16,10 @@ import static com.ecommerce.orderevent.constants.ErrorMessages.USER_NOT_FOUND;
 public class UserService {
 
     private final UserRepository userRepository;
-
-    public UserService(UserRepository userRepository){
+    private final PasswordEncoder passwordEncoder;
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder){
         this.userRepository=userRepository;
+        this.passwordEncoder=passwordEncoder;
     }
 
     public UserResponseDto saveUser(UserRequestDto requestDto){
@@ -28,7 +30,7 @@ public class UserService {
         User user = new User();
         user.setName(requestDto.getName());
         user.setEmail(requestDto.getEmail());
-        user.setPassword(requestDto.getPassword());
+        user.setPassword(passwordEncoder.encode(requestDto.getPassword()));
         User saveUser = userRepository.save(user);
 
         return UserResponseDto.fromEntity(saveUser);

@@ -46,19 +46,6 @@ public class PublicController {
         return ResponseEntity.ok(response);
     }
 
-//    @PostMapping("/register")
-//    @Operation(summary = "Register new user", description = "Create a new user account and save it to the system")
-//    public ResponseEntity<ApiResponse<UserResponseDto>> registerUser(@RequestBody UserRequestDto requestDto) {
-//        UserResponseDto savedUser = userService.saveUser(requestDto); // throws ResourceNotFoundException if not found
-//            ApiResponse<UserResponseDto> response = new ApiResponse<>(
-//                    SUCCESS,
-//                    "User saved successfully!",
-//                    savedUser,
-//                    LocalDateTime.now()
-//            );
-//            return ResponseEntity.status(HttpStatus.CREATED).body(response); // 201 Created
-//    }
-
     @PostMapping("/register")
     @Operation(summary = "Register new user", description = "Create a new user account and return JWT token")
     public ResponseEntity<ApiResponse<UserResponseDto>> registerUser(@RequestBody UserRequestDto requestDto) {
@@ -79,22 +66,6 @@ public class PublicController {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
-
-//    @PostMapping("/login")
-//    @Operation(summary = "User login", description = "Authenticate a user with email and password")
-//    public ResponseEntity<ApiResponse<UserResponseDto>> login(@RequestBody UserRequestDto requestDto) {
-//        User user = userService.getByEmail(requestDto.getEmail());
-//        if (!user.getPassword().equals(requestDto.getPassword())) throw new IllegalArgumentException("Invalid password!");
-//
-//        UserResponseDto responseDto = UserResponseDto.fromEntity(user);
-//        ApiResponse<UserResponseDto> response = new ApiResponse<>(
-//                SUCCESS,
-//                "User login successfully!",
-//                responseDto,
-//                LocalDateTime.now()
-//        );
-//        return ResponseEntity.ok(response); //200
-//    }
 
     @PostMapping("/login")
     @Operation(summary = "User login", description = "Authenticate a user with email and password and return JWT token")
@@ -137,3 +108,32 @@ public class PublicController {
         }
     }
 }
+
+//    @PostMapping("/register")
+//    @Operation(summary = "Register new user", description = "Create a new user account and save it to the system")
+//    public ResponseEntity<ApiResponse<UserResponseDto>> registerUser(@RequestBody UserRequestDto requestDto) {
+//        UserResponseDto savedUser = userService.saveUser(requestDto); // throws ResourceNotFoundException if not found
+//            ApiResponse<UserResponseDto> response = new ApiResponse<>(
+//                    SUCCESS,
+//                    "User saved successfully!",
+//                    savedUser,
+//                    LocalDateTime.now()
+//            );
+//            return ResponseEntity.status(HttpStatus.CREATED).body(response); // 201 Created
+//    }
+
+//    @PostMapping("/login")
+//    @Operation(summary = "User login", description = "Authenticate a user with email and password")
+//    public ResponseEntity<ApiResponse<UserResponseDto>> login(@RequestBody UserRequestDto requestDto) {
+//        User user = userService.getByEmail(requestDto.getEmail());
+//        if (!user.getPassword().equals(requestDto.getPassword())) throw new IllegalArgumentException("Invalid password!");
+//
+//        UserResponseDto responseDto = UserResponseDto.fromEntity(user);
+//        ApiResponse<UserResponseDto> response = new ApiResponse<>(
+//                SUCCESS,
+//                "User login successfully!",
+//                responseDto,
+//                LocalDateTime.now()
+//        );
+//        return ResponseEntity.ok(response); //200
+//    }
