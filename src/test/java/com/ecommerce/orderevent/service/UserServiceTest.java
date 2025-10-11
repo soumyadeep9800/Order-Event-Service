@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import static com.ecommerce.orderevent.constants.ErrorMessages.*;
 import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -23,6 +24,8 @@ class UserServiceTest {
     private  UserService userService;
     @Mock
     private  UserRepository userRepository;
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     @Test
     void testSaveUser_Success() {
@@ -30,26 +33,30 @@ class UserServiceTest {
         requestDto.setName("Test User");
         requestDto.setEmail("test@example.com");
         requestDto.setPassword("password123");
-        // Simulate DB: no existing user
+
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.empty());
-        // Mock repository save() to return a user with ID
+        when(passwordEncoder.encode("password123")).thenReturn("encodedPassword123"); // ✅ Mock encoding
+
         User savedUserMock = new User();
         savedUserMock.setId(1L);
         savedUserMock.setName("Test User");
         savedUserMock.setEmail("test@example.com");
-        savedUserMock.setPassword("password123");
+        savedUserMock.setPassword("encodedPassword123");
 
         when(userRepository.save(any(User.class))).thenReturn(savedUserMock);
+
         UserResponseDto result = userService.saveUser(requestDto);
+
         assertNotNull(result);
         assertEquals("Test User", result.getName());
         assertEquals("test@example.com", result.getEmail());
         assertEquals(1L, result.getId());
+        verify(passwordEncoder, times(1)).encode("password123"); // ✅ verify encoder used
+        verify(userRepository, times(1)).save(any(User.class));
     }
 
-
     @Test
-    void testSaveUser_AlreadyExists(){
+    void testSaveUser_AlreadyExists() {
         UserRequestDto requestDto = new UserRequestDto();
         requestDto.setName("Test User");
         requestDto.setEmail("test@example.com");
@@ -62,11 +69,13 @@ class UserServiceTest {
         existingUser.setPassword("password123");
 
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(existingUser));
-        Exception exception = assertThrows(IllegalArgumentException.class, () ->{
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
             userService.saveUser(requestDto);
         });
+
         assertEquals("User already exists with this email!", exception.getMessage());
         verify(userRepository, never()).save(any(User.class));
+        verify(passwordEncoder, never()).encode(anyString()); // ✅ encoder shouldn’t be called
     }
 
     @Test

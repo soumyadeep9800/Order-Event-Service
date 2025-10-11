@@ -152,11 +152,16 @@ class NotificationServiceTest {
     void testProcessNotification_RestaurantNotFound() {
         event.setStatus("PLACED");
 
-        when(menuItemRepository.findAllById(event.getMenuItemIds())).thenReturn(List.of(item1, item2));
+        // Only stub restaurant to simulate not found
         when(restaurantRepository.findById(restaurant.getId())).thenReturn(Optional.empty());
+
+        // Stub user to prevent NPE if called (lenient)
+        lenient().when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+        lenient().when(menuItemRepository.findAllById(event.getMenuItemIds())).thenReturn(List.of(item1, item2));
 
         notificationService.processNotification(event);
 
+        // No email should be sent
         verify(emailService, never()).sendEmail(anyString(), anyString(), anyString());
     }
 

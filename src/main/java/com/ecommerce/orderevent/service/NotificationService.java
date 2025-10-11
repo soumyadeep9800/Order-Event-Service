@@ -31,144 +31,170 @@ public class NotificationService {
         this.emailService = emailService;
         this.userRepository = userRepository;
         this.restaurantRepository = restaurantRepository;
-        this.menuItemRepository=menuItemRepository;
+        this.menuItemRepository = menuItemRepository;
     }
 
     private String buildItemDetails(List<MenuItem> items) {
-        StringBuilder itemDetails = new StringBuilder();
+        StringBuilder sb = new StringBuilder();
+        sb.append("<table style=\"width:100%;border-collapse:collapse;\">")
+                .append("<thead><tr><th style=\"text-align:left;padding:8px;border-bottom:1px solid #ddd;\">Item</th>")
+                .append("<th style=\"text-align:right;padding:8px;border-bottom:1px solid #ddd;\">Price</th></tr></thead><tbody>");
         for (MenuItem item : items) {
-            itemDetails.append("- ")
-                    .append(item.getName())
-                    .append(" (₹").append(item.getPrice()).append(")")
-                    .append("\n");
+            sb.append("<tr>")
+                    .append("<td style=\"padding:8px;border-bottom:1px solid #eee;\">").append(item.getName()).append("</td>")
+                    .append("<td style=\"padding:8px;border-bottom:1px solid #eee;text-align:right;\">₹").append(item.getPrice()).append("</td>")
+                    .append("</tr>");
         }
-        return itemDetails.toString();
+        sb.append("</tbody></table>");
+        return sb.toString();
     }
 
     public void processNotification(OrderEvent event) {
         try {
+            List<MenuItem> items = menuItemRepository.findAllById(event.getMenuItemIds());
+            String itemDetails = buildItemDetails(items);
+            double totalPrice = items.stream().mapToDouble(MenuItem::getPrice).sum();
+
+            User user = userRepository.findById(event.getUserId())
+                    .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND + event.getUserId()));
+
+            Restaurant restaurant = restaurantRepository.findById(event.getRestaurantId())
+                    .orElseThrow(() -> new ResourceNotFoundException(RESTAURANT_NOT_FOUND + event.getRestaurantId()));
+
             switch (event.getStatus()) {
                 case "PLACED" -> {
-                    // Fetch items
-                    List<MenuItem> items = menuItemRepository.findAllById(event.getMenuItemIds());
-                    double totalPrice = items.stream()
-                            .mapToDouble(MenuItem::getPrice)
-                            .sum();
-                    String itemDetails = buildItemDetails(items);
+                    String acceptLink = "http://localhost:8080/order/" + event.getOrderId() + "/accept";
+                    String rejectLink = "http://localhost:8080/order/" + event.getOrderId() + "/reject";
 
-                    // Notify restaurant
-                    Restaurant restaurant = restaurantRepository.findById(event.getRestaurantId())
-                            .orElseThrow(() -> new ResourceNotFoundException(RESTAURANT_NOT_FOUND+ event.getRestaurantId()));
-                    String acceptLink = "http://localhost:8080/orders/" + event.getOrderId() + "/accept";
-                    String rejectLink = "http://localhost:8080/orders/" + event.getOrderId() + "/reject";
-                    emailService.sendEmail(
-                            restaurant.getEmail(),
+                    String restaurantHtml = """
+                            <html><body style="font-family:Arial,sans-serif;color:#333;">
+                            <div style="max-width:600px;margin:auto;border:1px solid #ddd;border-radius:8px;padding:20px;">
+                                <h2 style="color:#28a745;">🍽 New Order Received - #%s</h2>
+                                <p>Hello <strong>%s</strong>,</p>
+                                <p>You have a new order! Please review the details below:</p>
+                                <p><strong>Order ID:</strong> %s<br>
+                                   <strong>Customer ID:</strong> %s</p>
+                                <h3 style="color:#555;">Ordered Items:</h3>
+                                %s
+                                <p style="text-align:right;font-size:16px;"><strong>Total Price: ₹%s</strong></p>
+                                <div style="margin-top:20px;text-align:center;">
+                                    <a href="%s" style="background:#28a745;color:#fff;padding:10px 15px;text-decoration:none;border-radius:6px;font-weight:bold;">✅ Accept Order</a>
+                                    &nbsp;
+                                    <a href="%s" style="background:#dc3545;color:#fff;padding:10px 15px;text-decoration:none;border-radius:6px;font-weight:bold;">❌ Reject Order</a>
+                                </div>
+                                <p style="margin-top:20px;">Please take action as soon as possible.</p>
+                                <hr>
+                                <p style="text-align:center;color:#888;font-size:12px;">— Order Event Service 🍴</p>
+                            </div>
+                            </body></html>
+                            """.formatted(event.getOrderId(), restaurant.getName(), event.getOrderId(),
+                            event.getUserId(), itemDetails, totalPrice, acceptLink, rejectLink);
+
+                    emailService.sendEmail(restaurant.getEmail(),
                             "🍽 New Order Received - #" + event.getOrderId(),
-                            "Hello " + restaurant.getName() + ",\n\n" +
-                                    "You have received a new order!\n\n" +
-                                    "Order ID: " + event.getOrderId() + "\n" +
-                                    "Customer ID: " + event.getUserId() + "\n\n" +
-                                    "Ordered Items:\n" + itemDetails + "\n" +
-                                    "Total Price: ₹" + totalPrice + "\n\n" +
-                                    "Accept Order: " + acceptLink + "\n" +      // ✅ accept link
-                                    "Reject Order: " + rejectLink + "\n\n" +    // ✅ reject link
-                                    "Please take action at your earliest convenience.\n\n" +
-                                    "— Order Event Service 🍴"
-                    );
+                            restaurantHtml);
+
                     log.info("📧 Sent 'PLACED' email to restaurant {}", restaurant.getEmail());
 
-                    // Notify user
-                    log.info("🔎 Fetching user {} for order {}", event.getUserId(), event.getOrderId());
-                    User user = userRepository.findById(event.getUserId())
-                            .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND+ event.getUserId()));
+                    String userHtml = """
+                            <html><body style="font-family:Arial,sans-serif;color:#333;">
+                            <div style="max-width:600px;margin:auto;border:1px solid #ddd;border-radius:8px;padding:20px;">
+                                <h2 style="color:#007bff;">🛒 Order Placed - #%s</h2>
+                                <p>Hi <strong>%s</strong>,</p>
+                                <p>Thank you for your order! Here are your details:</p>
+                                <p><strong>Order ID:</strong> %s<br>
+                                   <strong>Restaurant:</strong> %s</p>
+                                <h3 style="color:#555;">Items:</h3>
+                                %s
+                                <p style="text-align:right;font-size:16px;"><strong>Total Price: ₹%s</strong></p>
+                                <p>We’ll notify you once the restaurant accepts your order.</p>
+                                <hr>
+                                <p style="text-align:center;color:#888;font-size:12px;">— Order Event Service 🍴</p>
+                            </div>
+                            </body></html>
+                            """.formatted(event.getOrderId(), user.getName(), event.getOrderId(),
+                            restaurant.getName(), itemDetails, totalPrice);
 
-                    log.info("✅ Found user: {} with email {}", user.getName(), user.getEmail());
-
-                    emailService.sendEmail(
-                            user.getEmail(),
+                    emailService.sendEmail(user.getEmail(),
                             "🛒 Order PLACED - #" + event.getOrderId(),
-                            "Hi " + user.getName() + ",\n\n" +
-                                    "Thank you for your order! Here are the details:\n\n" +
-                                    "Order ID: " + event.getOrderId() + "\n" +
-                                    "Restaurant: " + restaurant.getName() + "\n\n" +
-                                    "Items:\n" + itemDetails +
-                                    "\nTotal Price: ₹" + totalPrice + "\n\n" +
-                                    "We’ll notify you once the restaurant accepts your order.\n\n" +
-                                    "— Order Event Service 🍴"
-                    );
+                            userHtml);
+
                     log.info("📧 Sent 'PLACED' confirmation email to user {}", user.getEmail());
                 }
                 case "ACCEPTED" -> {
                     String paymentLink = "http://localhost:8080/payments/" + event.getOrderId() + "/pay";
-                    // Fetch items for nicer email
-                    List<MenuItem> items = menuItemRepository.findAllById(event.getMenuItemIds());
-                    double totalPrice = items.stream()
-                            .mapToDouble(MenuItem::getPrice)
-                            .sum();
-                    String itemDetails = buildItemDetails(items);
 
-                    User user = userRepository.findById(event.getUserId())
-                            .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND + event.getUserId()));
+                    String html = """
+                            <html><body style="font-family:Arial,sans-serif;color:#333;">
+                            <div style="max-width:600px;margin:auto;border:1px solid #ddd;border-radius:8px;padding:20px;">
+                                <h2 style="color:#28a745;">✅ Order Accepted - #%s</h2>
+                                <p>Hi <strong>%s</strong>,</p>
+                                <p>Your order has been accepted by <strong>%s</strong> 🎉</p>
+                                <p><strong>Order ID:</strong> %s</p>
+                                <h3 style="color:#555;">Items:</h3>
+                                %s
+                                <p style="text-align:right;font-size:16px;"><strong>Total Price: ₹%s</strong></p>
+                                <p>Please complete your payment:</p>
+                                <p style="text-align:center;">
+                                    <a href="%s" style="background:#007bff;color:#fff;padding:10px 15px;text-decoration:none;border-radius:6px;font-weight:bold;">💳 Pay Now</a>
+                                </p>
+                                <p>Your food will be prepared once payment is confirmed.</p>
+                                <hr>
+                                <p style="text-align:center;color:#888;font-size:12px;">— Order Event Service 🍴</p>
+                            </div>
+                            </body></html>
+                            """.formatted(event.getOrderId(), user.getName(), restaurant.getName(),
+                            event.getOrderId(), itemDetails, totalPrice, paymentLink);
 
-                    Restaurant restaurant = restaurantRepository.findById(event.getRestaurantId())
-                            .orElseThrow(() -> new ResourceNotFoundException(RESTAURANT_NOT_FOUND + event.getRestaurantId()));
+                    emailService.sendEmail(user.getEmail(),
+                            "✅ Order Accepted - #" + event.getOrderId(),
+                            html);
 
-                    emailService.sendEmail(
-                            user.getEmail(),
-                            "✅ Order Accept - #" + event.getOrderId(),
-                            "Hi " + user.getName() + ",\n\n" +
-                                    "Good news! Your order has been accepted by **" + restaurant.getName() + "** 🎉\n\n" +
-                                    "Order Details:\n" +
-                                    "Order ID: " + event.getOrderId() + "\n" +
-                                    "Items:\n" + itemDetails +
-                                    "\nTotal Price: ₹" + totalPrice + "\n\n" +
-                                    "Please complete your payment by clicking the link below:\n" +
-                                    paymentLink + "\n\n" +
-                                    "Your food will be prepared once payment is confirmed.\n\n" +
-                                    "— Order Event Service 🍴"
-                    );
                     log.info("📧 Sent 'ACCEPTED' email to user {}", user.getEmail());
                 }
                 case "REJECTED" -> {
-                    List<MenuItem> items = menuItemRepository.findAllById(event.getMenuItemIds());
-                    String itemDetails = buildItemDetails(items);
+                    String html = """
+                            <html><body style="font-family:Arial,sans-serif;color:#333;">
+                            <div style="max-width:600px;margin:auto;border:1px solid #ddd;border-radius:8px;padding:20px;">
+                                <h2 style="color:#dc3545;">❌ Order Rejected - #%s</h2>
+                                <p>Hi <strong>%s</strong>,</p>
+                                <p>Unfortunately, your order has been rejected by <strong>%s</strong> 😞</p>
+                                <p><strong>Order ID:</strong> %s</p>
+                                <h3 style="color:#555;">Items:</h3>
+                                %s
+                                <p>No worries — you can try ordering from another restaurant.</p>
+                                <hr>
+                                <p style="text-align:center;color:#888;font-size:12px;">— Order Event Service 🍴</p>
+                            </div>
+                            </body></html>
+                            """.formatted(event.getOrderId(), user.getName(), restaurant.getName(),
+                            event.getOrderId(), itemDetails);
 
-                    User user = userRepository.findById(event.getUserId())
-                            .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND + event.getUserId()));
-
-                    Restaurant restaurant = restaurantRepository.findById(event.getRestaurantId())
-                            .orElseThrow(() -> new ResourceNotFoundException(RESTAURANT_NOT_FOUND + event.getRestaurantId()));
-
-                    emailService.sendEmail(
-                            user.getEmail(),
+                    emailService.sendEmail(user.getEmail(),
                             "❌ Order Rejected - #" + event.getOrderId(),
-                            "Hi " + user.getName() + ",\n\n" +
-                                    "We’re sorry to inform you that your order has been rejected by **" + restaurant.getName() + "** 😞\n\n" +
-                                    "Order Details:\n" +
-                                    "Order ID: " + event.getOrderId() + "\n" +
-                                    "Items:\n" + itemDetails + "\n\n" +
-                                    "No worries — you can try ordering from another restaurant.\n\n" +
-                                    "— Order Event Service 🍴"
-                    );
+                            html);
+
                     log.info("📧 Sent 'REJECTED' email to user {}", user.getEmail());
                 }
                 case "PAYMENT_SUCCESS" -> {
-                    User user = userRepository.findById(event.getUserId())
-                            .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND + event.getUserId()));
+                    String html = """
+                            <html><body style="font-family:Arial,sans-serif;color:#333;">
+                            <div style="max-width:600px;margin:auto;border:1px solid #ddd;border-radius:8px;padding:20px;">
+                                <h2 style="color:#28a745;">💳 Payment Successful - #%s</h2>
+                                <p>Hi <strong>%s</strong>,</p>
+                                <p>Your payment for order <strong>#%s</strong> has been successfully processed 🎉</p>
+                                <p><strong>Restaurant:</strong> %s</p>
+                                <p>The restaurant will now start preparing your food.</p>
+                                <hr>
+                                <p style="text-align:center;color:#888;font-size:12px;">— Order Event Service 🍴</p>
+                            </div>
+                            </body></html>
+                            """.formatted(event.getOrderId(), user.getName(), event.getOrderId(), restaurant.getName());
 
-                    Restaurant restaurant = restaurantRepository.findById(event.getRestaurantId())
-                            .orElseThrow(() -> new ResourceNotFoundException(RESTAURANT_NOT_FOUND + event.getRestaurantId()));
-
-                    emailService.sendEmail(
-                            user.getEmail(),
+                    emailService.sendEmail(user.getEmail(),
                             "💳 Payment Successful - #" + event.getOrderId(),
-                            "Hi " + user.getName() + ",\n\n" +
-                                    "Your payment for order #" + event.getOrderId() + " has been successfully processed. 🎉\n\n" +
-                                    "Restaurant: " + restaurant.getName() + "\n\n" +
-                                    "The restaurant will now start preparing your food.\n\n" +
-                                    "Thank you for choosing us!\n\n" +
-                                    "— Order Event Service 🍴"
-                    );
+                            html);
+
                     log.info("📧 Sent 'PAYMENT_SUCCESS' email to user {}", user.getEmail());
                 }
                 default -> log.warn("⚠️ Unknown order status: {}", event.getStatus());

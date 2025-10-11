@@ -100,27 +100,4 @@ public class OrderController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/{orderId}/accept")
-    public ResponseEntity<ApiResponse<String>> acceptOrder(@PathVariable Long orderId) {
-        String status = orderService.updateOrderStatusForRestaurant(orderId, "ACCEPTED");
-        ApiResponse<String> response = new ApiResponse<>(
-                SUCCESS,
-                "Order accepted successfully!",
-                status,
-                LocalDateTime.now()
-        );
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/{orderId}/reject")
-    public ResponseEntity<ApiResponse<String>> rejectOrder(@PathVariable Long orderId) {
-        String status = orderService.updateOrderStatusForRestaurant(orderId, "REJECTED");
-        ApiResponse<String> response = new ApiResponse<>(
-                SUCCESS,
-                "Order rejected successfully!",
-                status,
-                LocalDateTime.now()
-        );
-        return ResponseEntity.ok(response);
-    }
 }
