@@ -17,9 +17,11 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder){
+    private final EmailService emailService;
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, EmailService emailService){
         this.userRepository=userRepository;
         this.passwordEncoder=passwordEncoder;
+        this.emailService=emailService;
     }
 
     public UserResponseDto saveUser(UserRequestDto requestDto){
@@ -32,6 +34,13 @@ public class UserService {
         user.setEmail(requestDto.getEmail());
         user.setPassword(passwordEncoder.encode(requestDto.getPassword()));
         User saveUser = userRepository.save(user);
+
+        // ✅ Send welcome email here
+        emailService.sendEmail(
+                saveUser.getEmail(),
+                "🎉 Welcome, " + saveUser.getName() + "!",
+                "<h2>Welcome to Resume Builder</h2><p>Your account has been successfully created.</p>"
+        );
 
         return UserResponseDto.fromEntity(saveUser);
     }
