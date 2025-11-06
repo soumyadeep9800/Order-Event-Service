@@ -39,7 +39,7 @@ public class UserService {
         emailService.sendEmail(
                 saveUser.getEmail(),
                 "🎉 Welcome, " + saveUser.getName() + "!",
-                "<h2>Welcome to Resume Builder</h2><p>Your account has been successfully created.</p>"
+                "<h2>Welcome to Order-Event-Service</h2><p>Your account has been successfully created.</p>"
         );
 
         return UserResponseDto.fromEntity(saveUser);
