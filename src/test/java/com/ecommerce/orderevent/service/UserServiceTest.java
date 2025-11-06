@@ -26,6 +26,8 @@ class UserServiceTest {
     private  UserRepository userRepository;
     @Mock
     private PasswordEncoder passwordEncoder;
+    @Mock
+    private EmailService emailService;
 
     @Test
     void testSaveUser_Success() {
@@ -53,6 +55,11 @@ class UserServiceTest {
         assertEquals(1L, result.getId());
         verify(passwordEncoder, times(1)).encode("password123"); // ✅ verify encoder used
         verify(userRepository, times(1)).save(any(User.class));
+        verify(emailService, times(1)).sendEmail(
+                eq("test@example.com"),
+                contains("Welcome"),
+                contains("account has been successfully created")
+        );
     }
 
     @Test
@@ -76,6 +83,7 @@ class UserServiceTest {
         assertEquals("User already exists with this email!", exception.getMessage());
         verify(userRepository, never()).save(any(User.class));
         verify(passwordEncoder, never()).encode(anyString()); // ✅ encoder shouldn’t be called
+        verify(emailService, never()).sendEmail(anyString(), anyString(), anyString());
     }
 
     @Test
