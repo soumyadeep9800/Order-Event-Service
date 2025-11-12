@@ -6,6 +6,8 @@ import com.ecommerce.orderevent.entity.MenuItem;
 import com.ecommerce.orderevent.entity.Restaurant;
 import com.ecommerce.orderevent.exception.ResourceNotFoundException;
 import com.ecommerce.orderevent.repository.RestaurantRepository;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -20,10 +22,14 @@ public class RestaurantService {
     private static final long RESTAURANT_CACHE_TTL = 10;
 
     private final RestaurantRepository restaurantRepository;
-    private final RedisTemplate<String,Object> redisTemplate;
-    public RestaurantService(RestaurantRepository restaurantRepository,RedisTemplate<String, Object> redisTemplate){
+    private final RedisTemplate<String, Object> redisTemplate;
+    private final ObjectMapper objectMapper;
+    public RestaurantService(RestaurantRepository restaurantRepository,
+                             RedisTemplate<String, Object> redisTemplate,
+                             ObjectMapper objectMapper){
         this.restaurantRepository = restaurantRepository;
         this.redisTemplate=redisTemplate;
+        this.objectMapper = objectMapper;
     }
 
     public RestaurantResponseDto addRestaurant(RestaurantRequestDto restaurantRequestDto){
@@ -77,50 +83,67 @@ public class RestaurantService {
         }
         Restaurant restaurant = restaurantRepository.save(existingRestaurant);
 
-        // Invalidate the old cache
-        String key = RESTAURANT_CACHE_PREFIX + id;
-        redisTemplate.delete(key);
+        redisTemplate.delete(RESTAURANT_CACHE_PREFIX + id);
         redisTemplate.delete(RESTAURANT_CACHE_PREFIX + "all");
         log.info("♻️ Cache invalidated for restaurant {}", id);
 
         return RestaurantResponseDto.fromEntity(restaurant);
     }
 
-    public List<Restaurant> getAllRestaurant(){
+    public List<RestaurantResponseDto> getAllRestaurant() {
         String key = RESTAURANT_CACHE_PREFIX + "all";
 
-        List<Restaurant> cachedList = (List<Restaurant>) redisTemplate.opsForValue().get(key);
-        if (cachedList != null) {
-            log.info("✅ Fetched restaurant list from Redis Cache");
-            return cachedList;
+        try {
+            String json = (String) redisTemplate.opsForValue().get(key);
+            if (json != null) {
+                log.info("✅ Fetched restaurant list from Redis Cache");
+                return objectMapper.readValue(json, new TypeReference<List<RestaurantResponseDto>>() {});
+            }
+        } catch (Exception e) {
+            log.error("❌ Failed to deserialize cached restaurant list", e);
         }
 
         List<Restaurant> restaurants = restaurantRepository.findAll();
-        redisTemplate.opsForValue().set(key, restaurants, 5, TimeUnit.MINUTES);
-        log.info("💾 Saved restaurant list to Redis Cache");
-        return restaurants;
-    }
+        List<RestaurantResponseDto> dtoList = restaurants.stream()
+                .map(RestaurantResponseDto::fromEntity)
+                .toList();
 
-    public Restaurant getRestaurantById(Long id){
-        String key = RESTAURANT_CACHE_PREFIX + id;
-
-        // 1️⃣ Check if restaurant exists in Redis
-        Restaurant restaurant = (Restaurant) redisTemplate.opsForValue().get(key);
-        if (restaurant != null) {
-            log.info("✅ Fetched from Redis Cache");
-            return restaurant;
+        try {
+            redisTemplate.opsForValue().set(key, objectMapper.writeValueAsString(dtoList), 5, TimeUnit.MINUTES);
+            log.info("💾 Saved restaurant list to Redis Cache");
+        } catch (Exception e) {
+            log.error("❌ Failed to serialize restaurant list", e);
         }
 
-        // 2️⃣ Otherwise, fetch from DB
-        restaurant = restaurantRepository.findById(id)
+        return dtoList;
+    }
+
+    public RestaurantResponseDto getRestaurantById(Long id) {
+        String key = RESTAURANT_CACHE_PREFIX + id;
+
+        try {
+            String json = (String) redisTemplate.opsForValue().get(key);
+            if (json != null) {
+                log.info("✅ Fetched restaurant DTO from Redis Cache");
+                return objectMapper.readValue(json, RestaurantResponseDto.class);
+            }
+        } catch (Exception e) {
+            log.error("❌ Failed to deserialize cached restaurant DTO", e);
+        }
+
+        Restaurant restaurant = restaurantRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(RESTAURANT_NOT_FOUND + id));
 
-        // 3️⃣ Save to Redis cache for 10 minutes
-        redisTemplate.opsForValue().set(key, restaurant, RESTAURANT_CACHE_TTL, TimeUnit.MINUTES);
-
-        log.info("💾 Saved to Redis Cache");
-        return restaurant;
+        RestaurantResponseDto dto = RestaurantResponseDto.fromEntity(restaurant);
+        try {
+            redisTemplate.opsForValue().set(key, objectMapper.writeValueAsString(dto), RESTAURANT_CACHE_TTL, TimeUnit.MINUTES);
+            log.info("💾 Saved restaurant DTO to Redis Cache");
+        } catch (Exception e) {
+            log.error("❌ Failed to serialize restaurant DTO", e);
+        }
+        return dto;
     }
+
 
     public Restaurant getRestaurantWithMenu(Long id) {
         return restaurantRepository.findById(id)

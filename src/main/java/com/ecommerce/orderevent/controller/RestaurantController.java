@@ -2,11 +2,9 @@ package com.ecommerce.orderevent.controller;
 
 import com.ecommerce.orderevent.dtos.ApiResponse;
 import static com.ecommerce.orderevent.constants.ApiResponseStatus.SUCCESS;
-
 import com.ecommerce.orderevent.dtos.RestaurantRequestDto;
 import com.ecommerce.orderevent.dtos.RestaurantResponseDto;
 import com.ecommerce.orderevent.entity.MenuItem;
-import com.ecommerce.orderevent.entity.Restaurant;
 import com.ecommerce.orderevent.service.MenuItemService;
 import com.ecommerce.orderevent.service.RestaurantService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -57,9 +55,9 @@ public class RestaurantController {
 
     @GetMapping
     @Operation(summary = "Fetch all restaurants", description = "Retrieve a list of all restaurants")
-    public ResponseEntity<ApiResponse<List<Restaurant>>> getAllRestaurant(){
-        List<Restaurant> allRestaurant = restaurantService.getAllRestaurant();
-        ApiResponse<List<Restaurant>> response = new ApiResponse<>(
+    public ResponseEntity<ApiResponse<List<RestaurantResponseDto>>> getAllRestaurant(){
+        List<RestaurantResponseDto> allRestaurant = restaurantService.getAllRestaurant();
+        ApiResponse<List<RestaurantResponseDto>> response = new ApiResponse<>(
                 SUCCESS,
                 "All restaurants fetched successfully!",
                 allRestaurant,
@@ -70,9 +68,9 @@ public class RestaurantController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Fetch restaurant by ID", description = "Get details of a specific restaurant by its ID")
-    public ResponseEntity<ApiResponse<Restaurant>> getRestaurantById(@PathVariable Long id){
-        Restaurant restaurant = restaurantService.getRestaurantById(id);
-        ApiResponse<Restaurant> response = new ApiResponse<>(
+    public ResponseEntity<ApiResponse<RestaurantResponseDto>> getRestaurantById(@PathVariable Long id){
+        RestaurantResponseDto restaurant = restaurantService.getRestaurantById(id);
+        ApiResponse<RestaurantResponseDto> response = new ApiResponse<>(
                 SUCCESS,
                 "Restaurant details fetched successfully!",
                 restaurant,
