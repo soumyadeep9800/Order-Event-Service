@@ -1,4 +1,5 @@
-...Kafka-Wrokflow
+...
+Kafka-Wrokflow
 [Client: Place Order] 
         |
         | POST /orders (saves order)
@@ -42,4 +43,5 @@
                                                                 v
                                               [Notification Service consumes PAYMENT_SUCCESS]
                                                                 |
-                                                -> send payment-success email to user ...
+                                                -> send payment-success email to user
+...
