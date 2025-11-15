@@ -1,4 +1,5 @@
-...
+## Kafka-Workflow
+```
 Kafka-Wrokflow
 [Client: Place Order] 
         |
@@ -44,4 +45,4 @@ Kafka-Wrokflow
                                               [Notification Service consumes PAYMENT_SUCCESS]
                                                                 |
                                                 -> send payment-success email to user
-...
+```
